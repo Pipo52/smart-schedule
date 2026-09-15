@@ -1,0 +1,152 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "Smart Schedule",
+  "@appTitle": {"description": "Application title"},
+
+  "navHome": "Today",
+  "navTasks": "Tasks",
+  "navExams": "Exams",
+  "navSettings": "Settings",
+
+  "todayHeader": "Today: {weekday}, Week {week}",
+  "@todayHeader": {
+    "placeholders": {
+      "weekday": {"type": "String"},
+      "week": {"type": "int"}
+    }
+  },
+  "weekLabel": "Week {week}",
+  "@weekLabel": {
+    "placeholders": {"week": {"type": "int"}}
+  },
+  "week1Short": "Week 1",
+  "week2Short": "Week 2",
+  "viewingAheadBanner": "Viewing schedule for {week}",
+  "@viewingAheadBanner": {
+    "placeholders": {"week": {"type": "String"}}
+  },
+  "tasksForTodaySection": "Tasks for today / overdue",
+  "ok": "OK",
+  "cancel": "Cancel",
+  "save": "Save",
+  "delete": "Delete",
+  "edit": "Edit",
+  "add": "Add",
+  "close": "Close",
+  "done": "Done",
+  "confirm": "Confirm",
+
+  "emptyLessonsTitle": "No lessons",
+  "emptyLessonsSubtitle": "Enjoy your free day, or add a lesson to the schedule.",
+  "emptyTasksTitle": "No tasks",
+  "emptyTasksSubtitle": "Nothing due — you're all caught up.",
+  "emptyExamsTitle": "No exams scheduled",
+  "emptyExamsSubtitle": "Add an upcoming exam to keep track of it.",
+
+  "lessonTypeLecture": "Lecture",
+  "lessonTypePractical": "Practical",
+  "lessonTypeLaboratory": "Laboratory",
+
+  "priorityLow": "Low",
+  "priorityMedium": "Medium",
+  "priorityHigh": "High",
+
+  "examTypeMidterm": "Midterm",
+  "examTypeFinal": "Final",
+  "examTypeRetake": "Retake",
+
+  "weekTypeEvery": "Every week",
+  "weekTypeWeek1": "Week 1 only",
+  "weekTypeWeek2": "Week 2 only",
+
+  "tasksScreenTitle": "Tasks",
+  "addTaskTitle": "Add task",
+  "editTaskTitle": "Edit task",
+  "groupOverdue": "Overdue",
+  "groupToday": "Today",
+  "groupThisWeek": "This week",
+  "groupLater": "Later",
+  "sortByPriority": "By priority",
+  "sortByDate": "By date",
+  "taskTitleField": "Title",
+  "taskSubjectField": "Subject (optional)",
+  "taskDescriptionField": "Description (optional)",
+  "taskDueDateField": "Due date",
+  "taskPriorityField": "Priority",
+  "taskReminderField": "Remind me before",
+  "reminderNone": "No reminder",
+  "reminderMinutesBefore": "{minutes} min before",
+  "@reminderMinutesBefore": {
+    "placeholders": {"minutes": {"type": "int"}}
+  },
+
+  "examsScreenTitle": "Exams",
+  "addExamTitle": "Add exam",
+  "editExamTitle": "Edit exam",
+  "examSubjectField": "Subject",
+  "examDateField": "Date & time",
+  "examRoomField": "Room (optional)",
+  "examTypeField": "Type",
+  "examNotesField": "Notes (optional)",
+  "daysUntilExam": "{days, plural, =0{Today} =1{In 1 day} other{In {days} days}}",
+  "@daysUntilExam": {
+    "placeholders": {"days": {"type": "int"}}
+  },
+  "examPast": "Past",
+  "prepTasksTitle": "Preparation tasks",
+  "addPrepTask": "Add preparation task",
+
+  "lessonFormAddTitle": "Add lesson",
+  "lessonFormEditTitle": "Edit lesson",
+  "lessonSubjectField": "Subject name",
+  "lessonRoomField": "Room",
+  "lessonLecturerField": "Lecturer",
+  "lessonStartTimeField": "Start time",
+  "lessonEndTimeField": "End time",
+  "lessonWeekdayField": "Day of week",
+  "lessonWeekTypeField": "Recurrence",
+  "lessonNotesField": "Notes (optional)",
+  "lessonReminderToggle": "Remind me before this lesson",
+  "lessonTypeField": "Type",
+
+  "settingsScreenTitle": "Settings",
+  "settingsResetData": "Reset all data",
+  "settingsResetDataConfirmTitle": "Reset all data?",
+  "settingsResetDataConfirmMessage": "This will permanently delete all lessons, tasks and exams stored on this device. This cannot be undone.",
+  "settingsCurrentWeekSection": "Current week",
+  "settingsManualOverride": "Manual week override",
+  "settingsManualOverrideOff": "Automatic (from semester start date)",
+  "settingsSemesterReferenceDate": "Semester start date (Monday of Week 1)",
+  "settingsDefaultReminder": "Default lesson reminder",
+  "settingsMinutesBefore": "{minutes} minutes before",
+  "@settingsMinutesBefore": {
+    "placeholders": {"minutes": {"type": "int"}}
+  },
+  "settingsDataSection": "Data",
+  "settingsExport": "Export data (JSON)",
+  "settingsImport": "Import data (JSON)",
+  "settingsImportConfirmTitle": "Import data?",
+  "settingsImportConfirmMessage": "This will replace all current lessons, tasks and exams with the contents of the selected file.",
+  "settingsImportSuccess": "Data imported successfully",
+  "settingsImportError": "Could not import file: {error}",
+  "@settingsImportError": {
+    "placeholders": {"error": {"type": "String"}}
+  },
+  "settingsExportSuccess": "Backup ready to share",
+  "settingsAppearanceSection": "Appearance",
+  "settingsTheme": "Theme",
+  "themeSystem": "System",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "settingsLanguage": "Language",
+  "languageSystem": "System",
+  "languageEnglish": "English",
+  "languageUkrainian": "Українська",
+  "languageRussian": "Русский",
+
+  "confirmDeleteTitle": "Delete?",
+  "confirmDeleteLessonMessage": "This lesson and its reminders will be removed.",
+  "confirmDeleteTaskMessage": "This task will be removed.",
+  "confirmDeleteExamMessage": "This exam and its reminders will be removed."
+}
