@@ -130,6 +130,11 @@ class SettingsScreen extends StatelessWidget {
             trailing: DropdownButton<int?>(
               value: current.manualWeekOverride,
               hint: const Icon(Icons.auto_mode),
+              selectedItemBuilder: (context) => [
+                const Icon(Icons.auto_mode),
+                Text(l10n.week1Short),
+                Text(l10n.week2Short),
+              ],
               items: [
                 DropdownMenuItem(
                   value: null,
