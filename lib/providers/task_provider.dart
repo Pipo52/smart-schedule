@@ -6,18 +6,26 @@ import '../services/hive_service.dart';
 import '../services/notification_service.dart';
 
 class TaskProvider extends ChangeNotifier {
-  TaskProvider() {
+  TaskProvider({required String profileId}) : _profileId = profileId {
     _load();
   }
 
+  String _profileId;
   final Box<Task> _box = HiveService.tasksBox;
   List<Task> _tasks = <Task>[];
 
   List<Task> get tasks => List.unmodifiable(_tasks);
 
   void _load() {
-    _tasks = _box.values.toList()
+    _tasks = _box.values.where((task) => task.profileId == _profileId).toList()
       ..sort((a, b) => a.dueDate.compareTo(b.dueDate));
+  }
+
+  void updateProfileId(String id) {
+    if (_profileId == id) return;
+    _profileId = id;
+    _load();
+    notifyListeners();
   }
 
   List<Task> get pending => _tasks.where((t) => !t.isDone).toList();
@@ -35,6 +43,7 @@ class TaskProvider extends ChangeNotifier {
       DateTime(d.year, d.month, d.day, 23, 59, 59);
 
   Future<void> saveTask(Task task) async {
+    task.profileId = _profileId;
     await _box.put(task.id, task);
     _load();
     notifyListeners();

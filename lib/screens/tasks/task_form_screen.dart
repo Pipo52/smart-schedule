@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/task.dart';
+import '../../providers/profile_provider.dart';
 import '../../providers/task_provider.dart';
 import '../../utils/enum_labels.dart';
 
@@ -105,6 +106,9 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
       isDone: widget.task?.isDone ?? false,
       reminderOffsetMinutes: _reminderOffsetMinutes,
       linkedExamId: widget.task?.linkedExamId ?? widget.linkedExamId,
+      profileId:
+          widget.task?.profileId ??
+          context.read<ProfileProvider>().activeProfileId,
     );
 
     context.read<TaskProvider>().saveTask(task);

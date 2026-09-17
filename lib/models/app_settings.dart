@@ -12,6 +12,14 @@ enum AppThemeMode {
   dark,
 }
 
+@HiveType(typeId: 10)
+enum StartupBehavior {
+  @HiveField(0)
+  defaultProfile,
+  @HiveField(1)
+  lastOpened,
+}
+
 /// Single Hive object (box "settings", one entry) holding all app-wide
 /// preferences.
 @HiveType(typeId: 7)
@@ -22,8 +30,9 @@ class AppSettings extends HiveObject {
     this.defaultLessonReminderMinutes = 10,
     this.themeMode = AppThemeMode.system,
     this.appLocale,
-    this.schemaVersion = 1,
-    this.geminiApiKey,
+    this.schemaVersion = 2,
+    this.lastOpenedProfileId,
+    this.startupBehavior = StartupBehavior.lastOpened,
   });
 
   /// Monday of the week containing September 1st of the current academic
@@ -53,7 +62,9 @@ class AppSettings extends HiveObject {
   @HiveField(5, defaultValue: 1)
   int schemaVersion;
 
-  /// Optional Gemini API key for Smart Import. Stored locally only.
-  @HiveField(6)
-  String? geminiApiKey;
+  @HiveField(7)
+  String? lastOpenedProfileId;
+
+  @HiveField(8)
+  StartupBehavior startupBehavior;
 }

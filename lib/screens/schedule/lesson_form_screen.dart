@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/lesson.dart';
+import '../../providers/profile_provider.dart';
 import '../../providers/schedule_provider.dart';
 import '../../utils/enum_labels.dart';
 import '../../utils/weekday_utils.dart';
@@ -100,6 +101,9 @@ class _LessonFormScreenState extends State<LessonFormScreen> {
       endTime: _formatTime(_endTime),
       weekday: _weekday,
       weekType: _weekType,
+      profileId:
+          widget.lesson?.profileId ??
+          context.read<ProfileProvider>().activeProfileId,
       notes: _notesController.text.trim().isEmpty
           ? null
           : _notesController.text.trim(),

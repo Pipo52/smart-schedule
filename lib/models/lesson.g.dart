@@ -26,6 +26,7 @@ class LessonAdapter extends TypeAdapter<Lesson> {
       endTime: fields[6] as String,
       weekday: (fields[7] as num).toInt(),
       weekType: fields[8] as WeekType,
+      profileId: fields[11] == null ? 'default' : fields[11] as String,
       notes: fields[9] as String?,
       reminderEnabled: fields[10] == null ? true : fields[10] as bool,
     );
@@ -34,7 +35,7 @@ class LessonAdapter extends TypeAdapter<Lesson> {
   @override
   void write(BinaryWriter writer, Lesson obj) {
     writer
-      ..writeByte(11)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -56,7 +57,9 @@ class LessonAdapter extends TypeAdapter<Lesson> {
       ..writeByte(9)
       ..write(obj.notes)
       ..writeByte(10)
-      ..write(obj.reminderEnabled);
+      ..write(obj.reminderEnabled)
+      ..writeByte(11)
+      ..write(obj.profileId);
   }
 
   @override

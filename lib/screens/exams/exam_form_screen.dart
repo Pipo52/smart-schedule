@@ -6,6 +6,7 @@ import '../../l10n/generated/app_localizations.dart';
 import '../../models/exam.dart';
 import '../../providers/exam_provider.dart';
 import '../../models/task.dart';
+import '../../providers/profile_provider.dart';
 import '../../providers/task_provider.dart';
 import '../../utils/enum_labels.dart';
 import '../tasks/task_form_screen.dart';
@@ -81,6 +82,9 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
           ? null
           : _notesController.text.trim(),
       revisionTasks: widget.exam?.revisionTasks ?? const [],
+      profileId:
+          widget.exam?.profileId ??
+          context.read<ProfileProvider>().activeProfileId,
     );
     await context.read<ExamProvider>().saveExam(exam);
     return exam;

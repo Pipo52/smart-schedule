@@ -19,7 +19,7 @@ class _GeminiApiKeyTileState extends State<GeminiApiKeyTile> {
   void initState() {
     super.initState();
     _controller = TextEditingController(
-      text: context.read<SettingsProvider>().settings.geminiApiKey ?? '',
+      text: context.read<SettingsProvider>().geminiApiKey ?? '',
     );
   }
 
@@ -33,9 +33,8 @@ class _GeminiApiKeyTileState extends State<GeminiApiKeyTile> {
     final l10n = AppLocalizations.of(context);
     await context.read<SettingsProvider>().setGeminiApiKey(_controller.text);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.settingsGeminiApiKeySaved)),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(l10n.settingsGeminiApiKeySaved)));
   }
 
   @override
@@ -79,9 +78,8 @@ class _GeminiApiKeyTileState extends State<GeminiApiKeyTile> {
           const SizedBox(height: 8),
           Text(
             l10n.settingsGeminiApiKeyHelp,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.outline,
-            ),
+            style: Theme.of(context).textTheme.bodySmall
+                ?.copyWith(color: Theme.of(context).colorScheme.outline),
           ),
         ],
       ),

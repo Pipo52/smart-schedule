@@ -419,6 +419,124 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get smartInput => 'Smart input';
+
+  @override
+  String get smartInputHint => 'Describe what you need…';
+
+  @override
+  String get smartInputLoading => 'Thinking…';
+
+  @override
+  String smartInputTaskCreated(String title) {
+    return 'Task created: $title';
+  }
+
+  @override
+  String smartInputLessonCreated(String subject) {
+    return 'Lesson added: $subject';
+  }
+
+  @override
+  String get smartInputUnknown =>
+      'Couldn\'t understand the request. Try: \"Remind me to do the physics homework by Friday\" or \"Add a math lecture Mon 9:00-10:30\"';
+
+  @override
+  String smartInputError(String error) {
+    return 'AI error: $error';
+  }
+
+  @override
+  String get navCalendar => 'Calendar';
+
+  @override
+  String get academicCalendarTitle => 'Academic Calendar';
+
+  @override
+  String get addPeriod => 'Add period';
+
+  @override
+  String get editPeriod => 'Edit period';
+
+  @override
+  String get periodNameField => 'Period name';
+
+  @override
+  String get periodTypeField => 'Type';
+
+  @override
+  String get periodStartDate => 'Start date';
+
+  @override
+  String get periodEndDate => 'End date';
+
+  @override
+  String get periodTypeStudy => 'Study weeks';
+
+  @override
+  String get periodTypeExam => 'Exam session';
+
+  @override
+  String get periodTypeHoliday => 'Holidays';
+
+  @override
+  String get periodTypeRetake => 'Retake weeks';
+
+  @override
+  String get periodTypePublicHoliday => 'Public holiday';
+
+  @override
+  String get periodTypeOther => 'Other';
+
+  @override
+  String get emptyPeriodsTitle => 'No periods defined';
+
+  @override
+  String get emptyPeriodsSubtitle =>
+      'Add semester periods to see your academic year at a glance.';
+
+  @override
+  String get periodLegend => 'Legend';
+
+  @override
+  String get profileName => 'Schedule name';
+
+  @override
+  String get createSchedule => 'Create schedule';
+
+  @override
+  String get renameSchedule => 'Rename schedule';
+
+  @override
+  String get createNewSchedule => 'Create new schedule';
+
+  @override
+  String get rename => 'Rename';
+
+  @override
+  String get setAsDefault => 'Set as default';
+
+  @override
+  String get deleteScheduleTitle => 'Delete schedule?';
+
+  @override
+  String deleteScheduleMessage(String name) {
+    return 'This will permanently delete \"$name\" and all its lessons, tasks and exams.';
+  }
+
+  @override
+  String get cannotDeleteLastSchedule => 'The last schedule cannot be deleted.';
+
+  @override
+  String get settingsStartupSection => 'Open on startup';
+
+  @override
+  String get startupDefaultSchedule => 'Default schedule';
+
+  @override
+  String get startupLastOpened => 'Last opened';
+
+  @override
   String get confirmDeleteTitle => 'Delete?';
 
   @override
@@ -431,4 +549,47 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get confirmDeleteExamMessage =>
       'This exam and its reminders will be removed.';
+
+  @override
+  String get cancelThisClass => 'Cancel this class';
+
+  @override
+  String get editThisOccurrence => 'Edit this occurrence';
+
+  @override
+  String get editRecurringLesson => 'Edit recurring lesson';
+
+  @override
+  String lessonCancelled(String subject, String date) {
+    return '$subject cancelled for $date';
+  }
+
+  @override
+  String get restoreLesson => 'Restore';
+
+  @override
+  String get cancelledBadge => 'Cancelled';
+
+  @override
+  String get modifiedBadge => 'Modified';
+
+  @override
+  String get occurrenceFormTitle => 'Edit this occurrence';
+
+  @override
+  String smartInputPeriodCreated(String name) {
+    return 'Period added: $name';
+  }
+
+  @override
+  String smartInputLessonCancelled(String subject) {
+    return 'Lesson cancelled: $subject';
+  }
+
+  @override
+  String get smartInputLessonNotFound =>
+      'Could not find a matching lesson to cancel';
+
+  @override
+  String get nothingChanged => 'Nothing changed';
 }

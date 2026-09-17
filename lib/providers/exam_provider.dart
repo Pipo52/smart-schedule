@@ -6,23 +6,33 @@ import '../services/hive_service.dart';
 import '../services/notification_service.dart';
 
 class ExamProvider extends ChangeNotifier {
-  ExamProvider() {
+  ExamProvider({required String profileId}) : _profileId = profileId {
     _load();
   }
 
+  String _profileId;
   final Box<Exam> _box = HiveService.examsBox;
   List<Exam> _exams = <Exam>[];
 
   List<Exam> get exams => List.unmodifiable(_exams);
 
   void _load() {
-    _exams = _box.values.toList()..sort((a, b) => a.date.compareTo(b.date));
+    _exams = _box.values.where((exam) => exam.profileId == _profileId).toList()
+      ..sort((a, b) => a.date.compareTo(b.date));
+  }
+
+  void updateProfileId(String id) {
+    if (_profileId == id) return;
+    _profileId = id;
+    _load();
+    notifyListeners();
   }
 
   List<Exam> get upcoming =>
       _exams.where((e) => e.date.isAfter(DateTime.now())).toList();
 
   Future<void> saveExam(Exam exam) async {
+    exam.profileId = _profileId;
     await _box.put(exam.id, exam);
     _load();
     notifyListeners();

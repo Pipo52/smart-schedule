@@ -1,14 +1,15 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../models/app_settings.dart';
 import '../models/exam.dart';
 import '../models/lesson.dart';
 import '../models/task.dart';
+import 'backup_file_io.dart'
+    if (dart.library.js_interop) 'backup_file_web.dart';
 import 'hive_service.dart';
 
 /// Exports/imports the entire local database (lessons, tasks, exams,
@@ -36,20 +37,27 @@ class BackupService {
     };
   }
 
-  /// Writes the export JSON to a temp file and returns it.
-  static Future<File> writeExportFile() async {
+  /// Writes the export JSON to a temporary file and returns its path.
+  static Future<String> writeExportFile() async {
+    if (kIsWeb) {
+      throw UnsupportedError('Backup export is not available on web.');
+    }
     final json = const JsonEncoder.withIndent('  ').convert(buildExportJson());
-    final dir = await getTemporaryDirectory();
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final file = File('${dir.path}/smart_schedule_backup_$timestamp.json');
-    return file.writeAsString(json);
+    return writeBackupFile(
+      json,
+      filename: 'smart_schedule_backup_$timestamp.json',
+    );
   }
 
   /// Writes the export file and opens the system share sheet.
   static Future<void> shareExport() async {
-    final file = await writeExportFile();
+    if (kIsWeb) {
+      throw UnsupportedError('Backup export is not available on web.');
+    }
+    final filePath = await writeExportFile();
     await SharePlus.instance.share(
-      ShareParams(files: [XFile(file.path)], text: 'Smart Schedule backup'),
+      ShareParams(files: [XFile(filePath)], text: 'Smart Schedule backup'),
     );
   }
 
@@ -60,6 +68,9 @@ class BackupService {
   /// Opens a file picker for a `.json` file and imports it, replacing all
   /// existing local data. Returns `true` if a file was picked and imported.
   static Future<bool> pickAndImport() async {
+    if (kIsWeb) {
+      throw UnsupportedError('Backup import is not available on web.');
+    }
     final files = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: const ['json'],
@@ -68,7 +79,7 @@ class BackupService {
     final path = files.first.path;
     if (path == null) return false;
 
-    final content = await File(path).readAsString();
+    final content = await readBackupFile(path);
     final Map<String, dynamic> data =
         jsonDecode(content) as Map<String, dynamic>;
     await importFromJson(data);
@@ -115,6 +126,7 @@ class BackupService {
     'weekType': l.weekType.name,
     'notes': l.notes,
     'reminderEnabled': l.reminderEnabled,
+    'profileId': l.profileId,
   };
 
   static Lesson _lessonFromJson(Map<String, dynamic> j) => Lesson(
@@ -129,6 +141,7 @@ class BackupService {
     weekType: WeekType.values.byName(j['weekType'] as String),
     notes: j['notes'] as String?,
     reminderEnabled: j['reminderEnabled'] as bool? ?? true,
+    profileId: j['profileId'] as String? ?? 'default',
   );
 
   static Map<String, dynamic> _taskToJson(Task t) => <String, dynamic>{
@@ -141,6 +154,7 @@ class BackupService {
     'isDone': t.isDone,
     'reminderOffsetMinutes': t.reminderOffsetMinutes,
     'linkedExamId': t.linkedExamId,
+    'profileId': t.profileId,
   };
 
   static Task _taskFromJson(Map<String, dynamic> j) => Task(
@@ -153,6 +167,7 @@ class BackupService {
     isDone: j['isDone'] as bool? ?? false,
     reminderOffsetMinutes: j['reminderOffsetMinutes'] as int?,
     linkedExamId: j['linkedExamId'] as String?,
+    profileId: j['profileId'] as String? ?? 'default',
   );
 
   static Map<String, dynamic> _examToJson(Exam e) => <String, dynamic>{
@@ -163,6 +178,7 @@ class BackupService {
     'examType': e.examType.name,
     'notes': e.notes,
     'revisionTasks': e.revisionTasks,
+    'profileId': e.profileId,
   };
 
   static Exam _examFromJson(Map<String, dynamic> j) => Exam(
@@ -175,6 +191,7 @@ class BackupService {
     revisionTasks:
         (j['revisionTasks'] as List?)?.map((e) => e as String).toList() ??
         const [],
+    profileId: j['profileId'] as String? ?? 'default',
   );
 
   static Map<String, dynamic>? _settingsToJson(AppSettings? s) {
@@ -198,6 +215,6 @@ class BackupService {
       (j['themeMode'] as String?) ?? 'system',
     ),
     appLocale: j['appLocale'] as String?,
-    schemaVersion: j['schemaVersion'] as int? ?? 1,
+    schemaVersion: j['schemaVersion'] as int? ?? 2,
   );
 }

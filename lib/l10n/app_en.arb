@@ -171,8 +171,84 @@
     "placeholders": {"count": {"type": "int"}}
   },
 
+  "smartInput": "Smart input",
+  "@smartInput": {"description": "Menu option for AI text input"},
+  "smartInputHint": "Describe what you need…",
+  "smartInputLoading": "Thinking…",
+  "smartInputTaskCreated": "Task created: {title}",
+  "@smartInputTaskCreated": {
+    "placeholders": {"title": {"type": "String"}}
+  },
+  "smartInputLessonCreated": "Lesson added: {subject}",
+  "@smartInputLessonCreated": {
+    "placeholders": {"subject": {"type": "String"}}
+  },
+  "smartInputUnknown": "Couldn't understand the request. Try: \"Remind me to do the physics homework by Friday\" or \"Add a math lecture Mon 9:00-10:30\"",
+  "smartInputError": "AI error: {error}",
+  "@smartInputError": {
+    "placeholders": {"error": {"type": "String"}}
+  },
+
+  "navCalendar": "Calendar",
+  "academicCalendarTitle": "Academic Calendar",
+  "addPeriod": "Add period",
+  "editPeriod": "Edit period",
+  "periodNameField": "Period name",
+  "periodTypeField": "Type",
+  "periodStartDate": "Start date",
+  "periodEndDate": "End date",
+  "periodTypeStudy": "Study weeks",
+  "periodTypeExam": "Exam session",
+  "periodTypeHoliday": "Holidays",
+  "periodTypeRetake": "Retake weeks",
+  "periodTypePublicHoliday": "Public holiday",
+  "periodTypeOther": "Other",
+  "emptyPeriodsTitle": "No periods defined",
+  "emptyPeriodsSubtitle": "Add semester periods to see your academic year at a glance.",
+  "periodLegend": "Legend",
+
+  "profileName": "Schedule name",
+  "createSchedule": "Create schedule",
+  "renameSchedule": "Rename schedule",
+  "createNewSchedule": "Create new schedule",
+  "rename": "Rename",
+  "setAsDefault": "Set as default",
+  "deleteScheduleTitle": "Delete schedule?",
+  "deleteScheduleMessage": "This will permanently delete \"{name}\" and all its lessons, tasks and exams.",
+  "@deleteScheduleMessage": {
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "cannotDeleteLastSchedule": "The last schedule cannot be deleted.",
+  "settingsStartupSection": "Open on startup",
+  "startupDefaultSchedule": "Default schedule",
+  "startupLastOpened": "Last opened",
+
   "confirmDeleteTitle": "Delete?",
   "confirmDeleteLessonMessage": "This lesson and its reminders will be removed.",
   "confirmDeleteTaskMessage": "This task will be removed.",
-  "confirmDeleteExamMessage": "This exam and its reminders will be removed."
+  "confirmDeleteExamMessage": "This exam and its reminders will be removed.",
+  "cancelThisClass": "Cancel this class",
+  "editThisOccurrence": "Edit this occurrence",
+  "editRecurringLesson": "Edit recurring lesson",
+  "lessonCancelled": "{subject} cancelled for {date}",
+  "@lessonCancelled": {
+    "placeholders": {
+      "subject": {"type": "String"},
+      "date": {"type": "String"}
+    }
+  },
+  "restoreLesson": "Restore",
+  "cancelledBadge": "Cancelled",
+  "modifiedBadge": "Modified",
+  "occurrenceFormTitle": "Edit this occurrence",
+  "smartInputPeriodCreated": "Period added: {name}",
+  "@smartInputPeriodCreated": {
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "smartInputLessonCancelled": "Lesson cancelled: {subject}",
+  "@smartInputLessonCancelled": {
+    "placeholders": {"subject": {"type": "String"}}
+  },
+  "smartInputLessonNotFound": "Could not find a matching lesson to cancel",
+  "nothingChanged": "Nothing changed"
 }

@@ -850,6 +850,222 @@ abstract class AppLocalizations {
   /// **'{count} lessons added to your schedule'**
   String smartImportSaved(int count);
 
+  /// Menu option for AI text input
+  ///
+  /// In en, this message translates to:
+  /// **'Smart input'**
+  String get smartInput;
+
+  /// No description provided for @smartInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe what you need…'**
+  String get smartInputHint;
+
+  /// No description provided for @smartInputLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Thinking…'**
+  String get smartInputLoading;
+
+  /// No description provided for @smartInputTaskCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Task created: {title}'**
+  String smartInputTaskCreated(String title);
+
+  /// No description provided for @smartInputLessonCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Lesson added: {subject}'**
+  String smartInputLessonCreated(String subject);
+
+  /// No description provided for @smartInputUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t understand the request. Try: \"Remind me to do the physics homework by Friday\" or \"Add a math lecture Mon 9:00-10:30\"'**
+  String get smartInputUnknown;
+
+  /// No description provided for @smartInputError.
+  ///
+  /// In en, this message translates to:
+  /// **'AI error: {error}'**
+  String smartInputError(String error);
+
+  /// No description provided for @navCalendar.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar'**
+  String get navCalendar;
+
+  /// No description provided for @academicCalendarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Academic Calendar'**
+  String get academicCalendarTitle;
+
+  /// No description provided for @addPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Add period'**
+  String get addPeriod;
+
+  /// No description provided for @editPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit period'**
+  String get editPeriod;
+
+  /// No description provided for @periodNameField.
+  ///
+  /// In en, this message translates to:
+  /// **'Period name'**
+  String get periodNameField;
+
+  /// No description provided for @periodTypeField.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get periodTypeField;
+
+  /// No description provided for @periodStartDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Start date'**
+  String get periodStartDate;
+
+  /// No description provided for @periodEndDate.
+  ///
+  /// In en, this message translates to:
+  /// **'End date'**
+  String get periodEndDate;
+
+  /// No description provided for @periodTypeStudy.
+  ///
+  /// In en, this message translates to:
+  /// **'Study weeks'**
+  String get periodTypeStudy;
+
+  /// No description provided for @periodTypeExam.
+  ///
+  /// In en, this message translates to:
+  /// **'Exam session'**
+  String get periodTypeExam;
+
+  /// No description provided for @periodTypeHoliday.
+  ///
+  /// In en, this message translates to:
+  /// **'Holidays'**
+  String get periodTypeHoliday;
+
+  /// No description provided for @periodTypeRetake.
+  ///
+  /// In en, this message translates to:
+  /// **'Retake weeks'**
+  String get periodTypeRetake;
+
+  /// No description provided for @periodTypePublicHoliday.
+  ///
+  /// In en, this message translates to:
+  /// **'Public holiday'**
+  String get periodTypePublicHoliday;
+
+  /// No description provided for @periodTypeOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get periodTypeOther;
+
+  /// No description provided for @emptyPeriodsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No periods defined'**
+  String get emptyPeriodsTitle;
+
+  /// No description provided for @emptyPeriodsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add semester periods to see your academic year at a glance.'**
+  String get emptyPeriodsSubtitle;
+
+  /// No description provided for @periodLegend.
+  ///
+  /// In en, this message translates to:
+  /// **'Legend'**
+  String get periodLegend;
+
+  /// No description provided for @profileName.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule name'**
+  String get profileName;
+
+  /// No description provided for @createSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Create schedule'**
+  String get createSchedule;
+
+  /// No description provided for @renameSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename schedule'**
+  String get renameSchedule;
+
+  /// No description provided for @createNewSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Create new schedule'**
+  String get createNewSchedule;
+
+  /// No description provided for @rename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get rename;
+
+  /// No description provided for @setAsDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Set as default'**
+  String get setAsDefault;
+
+  /// No description provided for @deleteScheduleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete schedule?'**
+  String get deleteScheduleTitle;
+
+  /// No description provided for @deleteScheduleMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This will permanently delete \"{name}\" and all its lessons, tasks and exams.'**
+  String deleteScheduleMessage(String name);
+
+  /// No description provided for @cannotDeleteLastSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'The last schedule cannot be deleted.'**
+  String get cannotDeleteLastSchedule;
+
+  /// No description provided for @settingsStartupSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Open on startup'**
+  String get settingsStartupSection;
+
+  /// No description provided for @startupDefaultSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Default schedule'**
+  String get startupDefaultSchedule;
+
+  /// No description provided for @startupLastOpened.
+  ///
+  /// In en, this message translates to:
+  /// **'Last opened'**
+  String get startupLastOpened;
+
   /// No description provided for @confirmDeleteTitle.
   ///
   /// In en, this message translates to:
@@ -873,6 +1089,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This exam and its reminders will be removed.'**
   String get confirmDeleteExamMessage;
+
+  /// No description provided for @cancelThisClass.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel this class'**
+  String get cancelThisClass;
+
+  /// No description provided for @editThisOccurrence.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit this occurrence'**
+  String get editThisOccurrence;
+
+  /// No description provided for @editRecurringLesson.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit recurring lesson'**
+  String get editRecurringLesson;
+
+  /// No description provided for @lessonCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'{subject} cancelled for {date}'**
+  String lessonCancelled(String subject, String date);
+
+  /// No description provided for @restoreLesson.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get restoreLesson;
+
+  /// No description provided for @cancelledBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get cancelledBadge;
+
+  /// No description provided for @modifiedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Modified'**
+  String get modifiedBadge;
+
+  /// No description provided for @occurrenceFormTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit this occurrence'**
+  String get occurrenceFormTitle;
+
+  /// No description provided for @smartInputPeriodCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Period added: {name}'**
+  String smartInputPeriodCreated(String name);
+
+  /// No description provided for @smartInputLessonCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Lesson cancelled: {subject}'**
+  String smartInputLessonCancelled(String subject);
+
+  /// No description provided for @smartInputLessonNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not find a matching lesson to cancel'**
+  String get smartInputLessonNotFound;
+
+  /// No description provided for @nothingChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing changed'**
+  String get nothingChanged;
 }
 
 class _AppLocalizationsDelegate

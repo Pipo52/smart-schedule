@@ -12,7 +12,9 @@ import 'task_form_screen.dart';
 enum _SortMode { date, priority }
 
 class TasksScreen extends StatefulWidget {
-  const TasksScreen({super.key});
+  const TasksScreen({super.key, required this.onOpenDrawer});
+
+  final VoidCallback onOpenDrawer;
 
   @override
   State<TasksScreen> createState() => _TasksScreenState();
@@ -68,6 +70,10 @@ class _TasksScreenState extends State<TasksScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.menu_rounded),
+          onPressed: widget.onOpenDrawer,
+        ),
         title: Text(l10n.tasksScreenTitle),
         actions: [
           PopupMenuButton<_SortMode>(

@@ -422,6 +422,124 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String get smartInput => 'Умный ввод';
+
+  @override
+  String get smartInputHint => 'Опишите задачу или пару…';
+
+  @override
+  String get smartInputLoading => 'Думаю…';
+
+  @override
+  String smartInputTaskCreated(String title) {
+    return 'Задача создана: $title';
+  }
+
+  @override
+  String smartInputLessonCreated(String subject) {
+    return 'Пара добавлена: $subject';
+  }
+
+  @override
+  String get smartInputUnknown =>
+      'Не удалось понять запрос. Попробуйте: «Напомни сделать лабу по физике к пятнице» или «Добавь лекцию по математике Пн 9:00-10:30»';
+
+  @override
+  String smartInputError(String error) {
+    return 'Ошибка ИИ: $error';
+  }
+
+  @override
+  String get navCalendar => 'Календарь';
+
+  @override
+  String get academicCalendarTitle => 'Академический календарь';
+
+  @override
+  String get addPeriod => 'Добавить период';
+
+  @override
+  String get editPeriod => 'Редактировать период';
+
+  @override
+  String get periodNameField => 'Название периода';
+
+  @override
+  String get periodTypeField => 'Тип';
+
+  @override
+  String get periodStartDate => 'Дата начала';
+
+  @override
+  String get periodEndDate => 'Дата окончания';
+
+  @override
+  String get periodTypeStudy => 'Учебные недели';
+
+  @override
+  String get periodTypeExam => 'Сессия';
+
+  @override
+  String get periodTypeHoliday => 'Каникулы';
+
+  @override
+  String get periodTypeRetake => 'Пересдачи';
+
+  @override
+  String get periodTypePublicHoliday => 'Государственный праздник';
+
+  @override
+  String get periodTypeOther => 'Другое';
+
+  @override
+  String get emptyPeriodsTitle => 'Периоды не заданы';
+
+  @override
+  String get emptyPeriodsSubtitle =>
+      'Добавьте периоды семестра, чтобы увидеть учебный год целиком.';
+
+  @override
+  String get periodLegend => 'Легенда';
+
+  @override
+  String get profileName => 'Название расписания';
+
+  @override
+  String get createSchedule => 'Создать расписание';
+
+  @override
+  String get renameSchedule => 'Переименовать расписание';
+
+  @override
+  String get createNewSchedule => 'Создать новое расписание';
+
+  @override
+  String get rename => 'Переименовать';
+
+  @override
+  String get setAsDefault => 'Сделать основным';
+
+  @override
+  String get deleteScheduleTitle => 'Удалить расписание?';
+
+  @override
+  String deleteScheduleMessage(String name) {
+    return 'Расписание «$name» и все его пары, задачи и экзамены будут удалены без возможности восстановления.';
+  }
+
+  @override
+  String get cannotDeleteLastSchedule => 'Последнее расписание нельзя удалить.';
+
+  @override
+  String get settingsStartupSection => 'Открывать при запуске';
+
+  @override
+  String get startupDefaultSchedule => 'Основное расписание';
+
+  @override
+  String get startupLastOpened => 'Последнее открытое';
+
+  @override
   String get confirmDeleteTitle => 'Удалить?';
 
   @override
@@ -434,4 +552,47 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get confirmDeleteExamMessage =>
       'Этот экзамен и его напоминания будут удалены.';
+
+  @override
+  String get cancelThisClass => 'Отменить эту пару';
+
+  @override
+  String get editThisOccurrence => 'Изменить эту пару';
+
+  @override
+  String get editRecurringLesson => 'Редактировать расписание';
+
+  @override
+  String lessonCancelled(String subject, String date) {
+    return '$subject отменена на $date';
+  }
+
+  @override
+  String get restoreLesson => 'Восстановить';
+
+  @override
+  String get cancelledBadge => 'Отменена';
+
+  @override
+  String get modifiedBadge => 'Изменена';
+
+  @override
+  String get occurrenceFormTitle => 'Изменить эту пару';
+
+  @override
+  String smartInputPeriodCreated(String name) {
+    return 'Период добавлен: $name';
+  }
+
+  @override
+  String smartInputLessonCancelled(String subject) {
+    return 'Пара отменена: $subject';
+  }
+
+  @override
+  String get smartInputLessonNotFound =>
+      'Не удалось найти подходящую пару для отмены';
+
+  @override
+  String get nothingChanged => 'Ничего не изменено';
 }

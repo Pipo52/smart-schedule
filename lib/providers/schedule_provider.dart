@@ -11,20 +11,32 @@ import 'settings_provider.dart';
 /// whenever a lesson or the relevant settings (reference date, manual
 /// override, default reminder minutes) change.
 class ScheduleProvider extends ChangeNotifier {
-  ScheduleProvider({required SettingsProvider settings})
-    : _settings = settings {
+  ScheduleProvider({
+    required SettingsProvider settings,
+    required String profileId,
+  }) : _settings = settings,
+       _profileId = profileId {
     _loadLessons();
   }
 
   SettingsProvider _settings;
+  String _profileId;
   final Box<Lesson> _box = HiveService.lessonsBox;
   List<Lesson> _lessons = <Lesson>[];
 
   List<Lesson> get lessons => List.unmodifiable(_lessons);
 
   void _loadLessons() {
-    _lessons = _box.values.toList()
-      ..sort((a, b) => a.startMinutes.compareTo(b.startMinutes));
+    _lessons =
+        _box.values.where((lesson) => lesson.profileId == _profileId).toList()
+          ..sort((a, b) => a.startMinutes.compareTo(b.startMinutes));
+  }
+
+  void updateProfileId(String id) {
+    if (_profileId == id) return;
+    _profileId = id;
+    _loadLessons();
+    notifyListeners();
   }
 
   /// Called by the `ChangeNotifierProxyProvider` in main.dart whenever
@@ -59,6 +71,7 @@ class ScheduleProvider extends ChangeNotifier {
   }
 
   Future<void> saveLesson(Lesson lesson) async {
+    lesson.profileId = _profileId;
     await _box.put(lesson.id, lesson);
     _loadLessons();
     notifyListeners();

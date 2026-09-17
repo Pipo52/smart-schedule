@@ -197,6 +197,31 @@ class SettingsScreen extends StatelessWidget {
             onTap: () => _confirmReset(context),
           ),
           const Divider(),
+          _SectionLabel(l10n.settingsStartupSection),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: SegmentedButton<StartupBehavior>(
+              segments: [
+                ButtonSegment(
+                  value: StartupBehavior.defaultProfile,
+                  icon: const Icon(Icons.star_outline_rounded),
+                  label: Text(l10n.startupDefaultSchedule),
+                ),
+                ButtonSegment(
+                  value: StartupBehavior.lastOpened,
+                  icon: const Icon(Icons.history_rounded),
+                  label: Text(l10n.startupLastOpened),
+                ),
+              ],
+              selected: {settings.startupBehavior},
+              onSelectionChanged: (selection) {
+                settings.setStartupBehavior(selection.first);
+              },
+              showSelectedIcon: false,
+              expandedInsets: EdgeInsets.zero,
+            ),
+          ),
+          const Divider(),
           _SectionLabel(l10n.settingsAppearanceSection),
           ListTile(
             title: Text(l10n.settingsTheme),

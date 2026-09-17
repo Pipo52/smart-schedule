@@ -24,13 +24,14 @@ class ExamAdapter extends TypeAdapter<Exam> {
       examType: fields[4] as ExamType,
       notes: fields[5] as String?,
       revisionTasks: (fields[6] as List?)?.cast<String>(),
+      profileId: fields[7] == null ? 'default' : fields[7] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, Exam obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -44,7 +45,9 @@ class ExamAdapter extends TypeAdapter<Exam> {
       ..writeByte(5)
       ..write(obj.notes)
       ..writeByte(6)
-      ..write(obj.revisionTasks);
+      ..write(obj.revisionTasks)
+      ..writeByte(7)
+      ..write(obj.profileId);
   }
 
   @override

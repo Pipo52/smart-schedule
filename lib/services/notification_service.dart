@@ -67,6 +67,10 @@ class NotificationService {
 
   Future<void> init() async {
     if (_initialized) return;
+    if (kIsWeb) {
+      _initialized = true;
+      return;
+    }
 
     tz_data.initializeTimeZones();
     try {
@@ -154,6 +158,7 @@ class NotificationService {
     required DateTime referenceMonday,
     int? manualOverride,
   }) async {
+    if (kIsWeb) return;
     await cancelLessonNotifications(lesson.id);
     if (!lesson.reminderEnabled || reminderMinutes <= 0) return;
 
@@ -190,6 +195,7 @@ class NotificationService {
   }
 
   Future<void> cancelLessonNotifications(String lessonId) async {
+    if (kIsWeb) return;
     for (var i = 0; i < lessonLookaheadOccurrences; i++) {
       await _plugin.cancel(id: _stableId('lesson:$lessonId:$i'));
     }
@@ -200,6 +206,7 @@ class NotificationService {
   // ---------------------------------------------------------------------
 
   Future<void> scheduleTaskNotification(Task task) async {
+    if (kIsWeb) return;
     await cancelTaskNotification(task.id);
     final offset = task.reminderOffsetMinutes;
     if (offset == null || task.isDone) return;
@@ -222,6 +229,7 @@ class NotificationService {
   }
 
   Future<void> cancelTaskNotification(String taskId) async {
+    if (kIsWeb) return;
     await _plugin.cancel(id: _stableId('task:$taskId'));
   }
 
@@ -230,6 +238,7 @@ class NotificationService {
   // ---------------------------------------------------------------------
 
   Future<void> scheduleExamNotifications(Exam exam) async {
+    if (kIsWeb) return;
     await cancelExamNotifications(exam.id);
     final now = DateTime.now();
 
@@ -267,6 +276,7 @@ class NotificationService {
   }
 
   Future<void> cancelExamNotifications(String examId) async {
+    if (kIsWeb) return;
     await _plugin.cancel(id: _stableId('exam:$examId:day'));
     await _plugin.cancel(id: _stableId('exam:$examId:hour'));
   }

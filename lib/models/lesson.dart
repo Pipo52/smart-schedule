@@ -38,6 +38,7 @@ class Lesson extends HiveObject {
     required this.endTime,
     required this.weekday,
     required this.weekType,
+    required this.profileId,
     this.notes,
     this.reminderEnabled = true,
   });
@@ -86,6 +87,9 @@ class Lesson extends HiveObject {
   @HiveField(10)
   bool reminderEnabled;
 
+  @HiveField(11, defaultValue: 'default')
+  String profileId;
+
   int get startMinutes => _parseMinutesSinceMidnight(startTime);
 
   int get endMinutes => _parseMinutesSinceMidnight(endTime);
@@ -106,6 +110,7 @@ class Lesson extends HiveObject {
     String? endTime,
     int? weekday,
     WeekType? weekType,
+    String? profileId,
     String? notes,
     bool? reminderEnabled,
   }) {
@@ -119,6 +124,7 @@ class Lesson extends HiveObject {
       endTime: endTime ?? this.endTime,
       weekday: weekday ?? this.weekday,
       weekType: weekType ?? this.weekType,
+      profileId: profileId ?? this.profileId,
       notes: notes ?? this.notes,
       reminderEnabled: reminderEnabled ?? this.reminderEnabled,
     );

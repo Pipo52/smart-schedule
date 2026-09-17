@@ -422,6 +422,124 @@ class AppLocalizationsUk extends AppLocalizations {
   }
 
   @override
+  String get smartInput => 'Розумне введення';
+
+  @override
+  String get smartInputHint => 'Опишіть завдання або пару…';
+
+  @override
+  String get smartInputLoading => 'Думаю…';
+
+  @override
+  String smartInputTaskCreated(String title) {
+    return 'Завдання створено: $title';
+  }
+
+  @override
+  String smartInputLessonCreated(String subject) {
+    return 'Пару додано: $subject';
+  }
+
+  @override
+  String get smartInputUnknown =>
+      'Не вдалося зрозуміти запит. Спробуйте: «Нагадай зробити лабу з фізики до п\'ятниці» або «Додай лекцію з математики Пн 9:00-10:30»';
+
+  @override
+  String smartInputError(String error) {
+    return 'Помилка ШІ: $error';
+  }
+
+  @override
+  String get navCalendar => 'Календар';
+
+  @override
+  String get academicCalendarTitle => 'Академічний календар';
+
+  @override
+  String get addPeriod => 'Додати період';
+
+  @override
+  String get editPeriod => 'Редагувати період';
+
+  @override
+  String get periodNameField => 'Назва періоду';
+
+  @override
+  String get periodTypeField => 'Тип';
+
+  @override
+  String get periodStartDate => 'Дата початку';
+
+  @override
+  String get periodEndDate => 'Дата закінчення';
+
+  @override
+  String get periodTypeStudy => 'Навчальні тижні';
+
+  @override
+  String get periodTypeExam => 'Сесія';
+
+  @override
+  String get periodTypeHoliday => 'Канікули';
+
+  @override
+  String get periodTypeRetake => 'Перескладання';
+
+  @override
+  String get periodTypePublicHoliday => 'Державне свято';
+
+  @override
+  String get periodTypeOther => 'Інше';
+
+  @override
+  String get emptyPeriodsTitle => 'Періоди не задані';
+
+  @override
+  String get emptyPeriodsSubtitle =>
+      'Додайте періоди семестру, щоб побачити навчальний рік цілком.';
+
+  @override
+  String get periodLegend => 'Легенда';
+
+  @override
+  String get profileName => 'Назва розкладу';
+
+  @override
+  String get createSchedule => 'Створити розклад';
+
+  @override
+  String get renameSchedule => 'Перейменувати розклад';
+
+  @override
+  String get createNewSchedule => 'Створити новий розклад';
+
+  @override
+  String get rename => 'Перейменувати';
+
+  @override
+  String get setAsDefault => 'Зробити основним';
+
+  @override
+  String get deleteScheduleTitle => 'Видалити розклад?';
+
+  @override
+  String deleteScheduleMessage(String name) {
+    return 'Розклад «$name» та всі його пари, завдання й екзамени буде безповоротно видалено.';
+  }
+
+  @override
+  String get cannotDeleteLastSchedule => 'Останній розклад не можна видалити.';
+
+  @override
+  String get settingsStartupSection => 'Відкривати при запуску';
+
+  @override
+  String get startupDefaultSchedule => 'Основний розклад';
+
+  @override
+  String get startupLastOpened => 'Останній відкритий';
+
+  @override
   String get confirmDeleteTitle => 'Видалити?';
 
   @override
@@ -434,4 +552,47 @@ class AppLocalizationsUk extends AppLocalizations {
   @override
   String get confirmDeleteExamMessage =>
       'Цей екзамен та його нагадування буде видалено.';
+
+  @override
+  String get cancelThisClass => 'Скасувати цю пару';
+
+  @override
+  String get editThisOccurrence => 'Змінити цю пару';
+
+  @override
+  String get editRecurringLesson => 'Редагувати розклад';
+
+  @override
+  String lessonCancelled(String subject, String date) {
+    return '$subject скасовано на $date';
+  }
+
+  @override
+  String get restoreLesson => 'Відновити';
+
+  @override
+  String get cancelledBadge => 'Скасовано';
+
+  @override
+  String get modifiedBadge => 'Змінено';
+
+  @override
+  String get occurrenceFormTitle => 'Змінити цю пару';
+
+  @override
+  String smartInputPeriodCreated(String name) {
+    return 'Період додано: $name';
+  }
+
+  @override
+  String smartInputLessonCancelled(String subject) {
+    return 'Пару скасовано: $subject';
+  }
+
+  @override
+  String get smartInputLessonNotFound =>
+      'Не вдалося знайти відповідну пару для скасування';
+
+  @override
+  String get nothingChanged => 'Нічого не змінено';
 }

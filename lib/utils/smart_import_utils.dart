@@ -20,8 +20,8 @@ String messageForAiParserError(
       AiParserErrorCode.malformedJson ||
       AiParserErrorCode.emptyResponse => l10n.smartImportMalformed,
       AiParserErrorCode.noLessons => l10n.smartImportEmpty,
-      AiParserErrorCode.invalidKey ||
-      AiParserErrorCode.network => l10n.smartImportNetwork,
+      AiParserErrorCode.invalidKey => l10n.smartImportNetwork,
+      AiParserErrorCode.network => '${l10n.smartImportNetwork} (Сервер: ${error.cause?.toString().contains("503") == true ? "Перегружен" : "Сбой"})',
       AiParserErrorCode.unknown =>
         l10n.smartImportError(error.cause?.toString() ?? error.toString()),
     };

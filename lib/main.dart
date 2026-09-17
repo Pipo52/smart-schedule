@@ -4,7 +4,10 @@ import 'package:provider/provider.dart';
 
 import 'l10n/generated/app_localizations.dart';
 import 'providers/exam_provider.dart';
+import 'providers/profile_provider.dart';
+import 'providers/schedule_exception_provider.dart';
 import 'providers/schedule_provider.dart';
+import 'providers/semester_period_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/task_provider.dart';
 import 'screens/root_shell.dart';
@@ -14,6 +17,7 @@ import 'services/notification_service.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await HiveService.init();
+  await HiveService.ensureDefaultProfile();
   await NotificationService.instance.init();
 
   runApp(const SmartScheduleApp());
@@ -27,17 +31,82 @@ class SmartScheduleApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
-        ChangeNotifierProxyProvider<SettingsProvider, ScheduleProvider>(
+        ChangeNotifierProxyProvider<SettingsProvider, ProfileProvider>(
           create: (context) =>
-              ScheduleProvider(settings: context.read<SettingsProvider>()),
+              ProfileProvider(settings: context.read<SettingsProvider>()),
           update: (context, settings, previous) {
-            final provider = previous ?? ScheduleProvider(settings: settings);
+            final provider = previous ?? ProfileProvider(settings: settings);
             provider.updateSettings(settings);
             return provider;
           },
         ),
-        ChangeNotifierProvider(create: (_) => TaskProvider()),
-        ChangeNotifierProvider(create: (_) => ExamProvider()),
+        ChangeNotifierProxyProvider2<
+          ProfileProvider,
+          SettingsProvider,
+          ScheduleProvider
+        >(
+          create: (context) => ScheduleProvider(
+            settings: context.read<SettingsProvider>(),
+            profileId: context.read<ProfileProvider>().activeProfileId,
+          ),
+          update: (context, profile, settings, previous) {
+            final provider =
+                previous ??
+                ScheduleProvider(
+                  settings: settings,
+                  profileId: profile.activeProfileId,
+                );
+            provider.updateSettings(settings);
+            provider.updateProfileId(profile.activeProfileId);
+            return provider;
+          },
+        ),
+        ChangeNotifierProxyProvider<ProfileProvider, TaskProvider>(
+          create: (context) => TaskProvider(
+            profileId: context.read<ProfileProvider>().activeProfileId,
+          ),
+          update: (context, profile, previous) {
+            final provider =
+                previous ?? TaskProvider(profileId: profile.activeProfileId);
+            provider.updateProfileId(profile.activeProfileId);
+            return provider;
+          },
+        ),
+        ChangeNotifierProxyProvider<ProfileProvider, ExamProvider>(
+          create: (context) => ExamProvider(
+            profileId: context.read<ProfileProvider>().activeProfileId,
+          ),
+          update: (context, profile, previous) {
+            final provider =
+                previous ?? ExamProvider(profileId: profile.activeProfileId);
+            provider.updateProfileId(profile.activeProfileId);
+            return provider;
+          },
+        ),
+        ChangeNotifierProxyProvider<ProfileProvider, SemesterPeriodProvider>(
+          create: (context) => SemesterPeriodProvider(
+            profileId: context.read<ProfileProvider>().activeProfileId,
+          ),
+          update: (context, profile, previous) {
+            final provider =
+                previous ??
+                SemesterPeriodProvider(profileId: profile.activeProfileId);
+            provider.updateProfileId(profile.activeProfileId);
+            return provider;
+          },
+        ),
+        ChangeNotifierProxyProvider<ProfileProvider, ScheduleExceptionProvider>(
+          create: (context) => ScheduleExceptionProvider(
+            profileId: context.read<ProfileProvider>().activeProfileId,
+          ),
+          update: (context, profile, previous) {
+            final provider =
+                previous ??
+                ScheduleExceptionProvider(profileId: profile.activeProfileId);
+            provider.updateProfileId(profile.activeProfileId);
+            return provider;
+          },
+        ),
       ],
       child: const _AppView(),
     );

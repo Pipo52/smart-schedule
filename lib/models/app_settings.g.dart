@@ -27,14 +27,17 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
           : fields[3] as AppThemeMode,
       appLocale: fields[4] as String?,
       schemaVersion: fields[5] == null ? 1 : (fields[5] as num).toInt(),
-      geminiApiKey: fields[6] as String?,
+      lastOpenedProfileId: fields[7] as String?,
+      startupBehavior: fields[8] == null
+          ? StartupBehavior.lastOpened
+          : fields[8] as StartupBehavior,
     );
   }
 
   @override
   void write(BinaryWriter writer, AppSettings obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.semesterReferenceDate)
       ..writeByte(1)
@@ -47,8 +50,10 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       ..write(obj.appLocale)
       ..writeByte(5)
       ..write(obj.schemaVersion)
-      ..writeByte(6)
-      ..write(obj.geminiApiKey);
+      ..writeByte(7)
+      ..write(obj.lastOpenedProfileId)
+      ..writeByte(8)
+      ..write(obj.startupBehavior);
   }
 
   @override
@@ -99,6 +104,43 @@ class AppThemeModeAdapter extends TypeAdapter<AppThemeMode> {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is AppThemeModeAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class StartupBehaviorAdapter extends TypeAdapter<StartupBehavior> {
+  @override
+  final typeId = 10;
+
+  @override
+  StartupBehavior read(BinaryReader reader) {
+    switch (reader.readByte()) {
+      case 0:
+        return StartupBehavior.defaultProfile;
+      case 1:
+        return StartupBehavior.lastOpened;
+      default:
+        return StartupBehavior.defaultProfile;
+    }
+  }
+
+  @override
+  void write(BinaryWriter writer, StartupBehavior obj) {
+    switch (obj) {
+      case StartupBehavior.defaultProfile:
+        writer.writeByte(0);
+      case StartupBehavior.lastOpened:
+        writer.writeByte(1);
+    }
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is StartupBehaviorAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

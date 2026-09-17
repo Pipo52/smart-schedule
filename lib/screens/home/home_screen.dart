@@ -1,8 +1,12 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../l10n/generated/app_localizations.dart';
+import '../../models/lesson.dart';
+import '../../models/schedule_exception.dart';
+import '../../providers/schedule_exception_provider.dart';
 import '../../providers/schedule_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/task_provider.dart';
@@ -12,13 +16,17 @@ import '../../utils/weekday_utils.dart';
 import '../../widgets/day_selector.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/lesson_card.dart';
+import '../../widgets/smart_input_sheet.dart';
 import '../../widgets/task_tile.dart';
 import '../../widgets/week_badge.dart';
 import '../schedule/import_preview_screen.dart';
 import '../schedule/lesson_form_screen.dart';
+import '../schedule/occurrence_form_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, required this.onOpenDrawer});
+
+  final VoidCallback onOpenDrawer;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -35,6 +43,100 @@ class _HomeScreenState extends State<HomeScreen> {
     _selectedWeekday = today >= 1 && today <= 6 ? today : 1;
   }
 
+  /// Вычисляет конкретную календарную дату для выбранного дня недели и недели.
+  DateTime _targetDate(int selectedWeekday, int previewWeek, int actualWeek) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final todayWeekday = now.weekday; // 1=Mon..7=Sun
+    int dayDiff = selectedWeekday - todayWeekday;
+    // Если смотрим другую неделю — смещение на 7 дней.
+    if (previewWeek != actualWeek) {
+      dayDiff += 7;
+    }
+    return today.add(Duration(days: dayDiff));
+  }
+
+  void _showLessonActions(
+    BuildContext context,
+    Lesson lesson,
+    DateTime targetDate,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.cancel_outlined),
+              title: Text(l10n.cancelThisClass),
+              subtitle: Text(
+                MaterialLocalizations.of(context).formatMediumDate(targetDate),
+              ),
+              onTap: () async {
+                Navigator.of(sheetContext).pop();
+                final exception = ScheduleException(
+                  id: const Uuid().v4(),
+                  lessonId: lesson.id,
+                  date: targetDate,
+                  type: ExceptionType.cancelled,
+                  profileId: lesson.profileId,
+                );
+                await context.read<ScheduleExceptionProvider>().saveException(
+                  exception,
+                );
+                if (context.mounted) {
+                  final dateStr = MaterialLocalizations.of(context)
+                      .formatMediumDate(targetDate);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        l10n.lessonCancelled(lesson.subjectName, dateStr),
+                      ),
+                      action: SnackBarAction(
+                        label: l10n.restoreLesson,
+                        onPressed: () => context
+                            .read<ScheduleExceptionProvider>()
+                            .deleteException(exception.id),
+                      ),
+                    ),
+                  );
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.edit_calendar_outlined),
+              title: Text(l10n.editThisOccurrence),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        OccurrenceFormScreen(lesson: lesson, date: targetDate),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.edit_outlined),
+              title: Text(l10n.editRecurringLesson),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => LessonFormScreen(lesson: lesson),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _showAddOptions() async {
     final l10n = AppLocalizations.of(context);
     await showModalBottomSheet<void>(
@@ -46,14 +148,24 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
+                leading: const Icon(Icons.chat_outlined),
+                title: Text(l10n.smartInput),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  showModalBottomSheet<void>(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (_) => const SmartInputSheet(),
+                  );
+                },
+              ),
+              ListTile(
                 leading: const Icon(Icons.edit_outlined),
                 title: Text(l10n.manualEntry),
                 onTap: () {
                   Navigator.of(sheetContext).pop();
                   Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const LessonFormScreen(),
-                    ),
+                    MaterialPageRoute(builder: (_) => const LessonFormScreen()),
                   );
                 },
               ),
@@ -75,9 +187,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _smartImport() async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    final apiKey = context.read<SettingsProvider>().settings.geminiApiKey;
+    final apiKey = context.read<SettingsProvider>().geminiApiKey;
     if (apiKey == null || apiKey.trim().isEmpty) {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.smartImportMissingKey)));
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.smartImportMissingKey)),
+      );
       return;
     }
 
@@ -140,6 +254,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final settings = context.watch<SettingsProvider>();
     final schedule = context.watch<ScheduleProvider>();
     final tasks = context.watch<TaskProvider>();
+    final exceptionProvider = context.watch<ScheduleExceptionProvider>();
     final localeCode = Localizations.localeOf(context).toString();
 
     final actualWeek = settings.currentWeek;
@@ -156,8 +271,29 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     final dueTasks = tasks.dueTodayOrOverdue;
 
+    final targetDate = _targetDate(_selectedWeekday, previewWeek, actualWeek);
+    final effectiveLessons =
+        <
+          ({Lesson lesson, bool isCancelled, ScheduleException? modification})
+        >[];
+    for (final lesson in lessons) {
+      final cancelled = exceptionProvider.isCancelled(lesson.id, targetDate);
+      final mod = exceptionProvider.getModification(lesson.id, targetDate);
+      effectiveLessons.add((
+        lesson: lesson,
+        isCancelled: cancelled,
+        modification: mod,
+      ));
+    }
+
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.appTitle)),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.menu_rounded),
+          onPressed: widget.onOpenDrawer,
+        ),
+        title: Text(l10n.appTitle),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddOptions,
         child: const Icon(Icons.add),
@@ -215,18 +351,60 @@ class _HomeScreenState extends State<HomeScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
-                children: lessons
-                    .map(
-                      (lesson) => LessonCard(
-                        lesson: lesson,
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => LessonFormScreen(lesson: lesson),
-                          ),
+                children: effectiveLessons.map((entry) {
+                  final lesson = entry.modification != null
+                      ? entry.lesson.copyWith(
+                          startTime: entry.modification!.newStartTime,
+                          endTime: entry.modification!.newEndTime,
+                          room: entry.modification!.newRoom,
+                          lecturer: entry.modification!.newLecturer,
+                          notes: entry.modification!.newNotes,
+                        )
+                      : entry.lesson;
+
+                  return Opacity(
+                    opacity: entry.isCancelled ? 0.4 : 1.0,
+                    child: Stack(
+                      children: [
+                        LessonCard(
+                          lesson: lesson,
+                          onTap: entry.isCancelled
+                              ? null
+                              : () => _showLessonActions(
+                                  context,
+                                  entry.lesson,
+                                  targetDate,
+                                ),
                         ),
-                      ),
-                    )
-                    .toList(),
+                        if (entry.isCancelled)
+                          Positioned(
+                            top: 8,
+                            right: 12,
+                            child: Chip(
+                              label: Text(l10n.cancelledBadge),
+                              labelStyle: const TextStyle(fontSize: 11),
+                              padding: EdgeInsets.zero,
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ),
+                        if (entry.modification != null && !entry.isCancelled)
+                          Positioned(
+                            top: 8,
+                            right: 12,
+                            child: Chip(
+                              label: Text(l10n.modifiedBadge),
+                              labelStyle: const TextStyle(fontSize: 11),
+                              padding: EdgeInsets.zero,
+                              visualDensity: VisualDensity.compact,
+                              backgroundColor: Theme.of(context)
+                                  .colorScheme
+                                  .tertiaryContainer,
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                }).toList(),
               ),
             ),
           const Divider(height: 32),

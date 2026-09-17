@@ -8,7 +8,9 @@ import '../../widgets/exam_tile.dart';
 import 'exam_form_screen.dart';
 
 class ExamsScreen extends StatelessWidget {
-  const ExamsScreen({super.key});
+  const ExamsScreen({super.key, required this.onOpenDrawer});
+
+  final VoidCallback onOpenDrawer;
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +19,13 @@ class ExamsScreen extends StatelessWidget {
     final exams = examProvider.exams;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.examsScreenTitle)),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.menu_rounded),
+          onPressed: onOpenDrawer,
+        ),
+        title: Text(l10n.examsScreenTitle),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.of(context)
             .push(MaterialPageRoute(builder: (_) => const ExamFormScreen())),

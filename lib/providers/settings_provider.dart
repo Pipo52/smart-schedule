@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../models/app_settings.dart';
 import '../services/hive_service.dart';
@@ -7,10 +8,18 @@ import '../services/week_calculator.dart';
 /// Exposes [AppSettings] as observable state, and derives the current
 /// Week 1 / Week 2 rotation, [Locale] and [ThemeMode] from it.
 class SettingsProvider extends ChangeNotifier {
-  SettingsProvider() : _settings = HiveService.loadOrCreateSettings();
+  SettingsProvider() : _settings = HiveService.loadOrCreateSettings() {
+    _loadGeminiApiKey();
+  }
 
+  static const _geminiApiKeyStorageKey = 'gemini_api_key';
+  final _storage = const FlutterSecureStorage();
   AppSettings _settings;
+  String? _geminiApiKey;
+
   AppSettings get settings => _settings;
+  String? get geminiApiKey => _geminiApiKey;
+  StartupBehavior get startupBehavior => _settings.startupBehavior;
 
   int get currentWeek => WeekCalculator.currentWeek(
     referenceMonday: _settings.semesterReferenceDate,
@@ -62,6 +71,11 @@ class SettingsProvider extends ChangeNotifier {
     await _persist();
   }
 
+  Future<void> setStartupBehavior(StartupBehavior behavior) async {
+    _settings.startupBehavior = behavior;
+    await _persist();
+  }
+
   /// [code] must be one of 'en' / 'uk' / 'ru', or `null` for "system".
   Future<void> setAppLocale(String? code) async {
     _settings.appLocale = code;
@@ -69,17 +83,22 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   Future<void> setGeminiApiKey(String? key) async {
-    final trimmed = key?.trim();
-    _settings.geminiApiKey = (trimmed == null || trimmed.isEmpty)
-        ? null
-        : trimmed;
-    await _persist();
+    _geminiApiKey = key;
+    notifyListeners();
+    if (key == null || key.isEmpty) {
+      await _storage.delete(key: _geminiApiKeyStorageKey);
+    } else {
+      await _storage.write(key: _geminiApiKeyStorageKey, value: key);
+    }
   }
 
   /// Wipes all data and resets settings to defaults.
   Future<void> resetAllData() async {
     await HiveService.wipeAllData();
+    await _storage.deleteAll();
+    await HiveService.ensureDefaultProfile();
     _settings = HiveService.loadOrCreateSettings();
+    _geminiApiKey = null;
     notifyListeners();
   }
 
@@ -87,5 +106,13 @@ class SettingsProvider extends ChangeNotifier {
   void reloadFromBox() {
     _settings = HiveService.loadOrCreateSettings();
     notifyListeners();
+    _loadGeminiApiKey();
+  }
+
+  void _loadGeminiApiKey() {
+    _storage.read(key: _geminiApiKeyStorageKey).then((value) {
+      _geminiApiKey = value;
+      notifyListeners();
+    });
   }
 }

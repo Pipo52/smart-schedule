@@ -6,6 +6,9 @@ import 'package:hive_ce/hive_ce.dart';
 import 'package:smart_schedule/models/app_settings.dart';
 import 'package:smart_schedule/models/exam.dart';
 import 'package:smart_schedule/models/lesson.dart';
+import 'package:smart_schedule/models/schedule_exception.dart';
+import 'package:smart_schedule/models/schedule_profile.dart';
+import 'package:smart_schedule/models/semester_period.dart';
 import 'package:smart_schedule/models/task.dart';
 
 extension HiveRegistrar on HiveInterface {
@@ -14,9 +17,15 @@ extension HiveRegistrar on HiveInterface {
     registerAdapter(AppThemeModeAdapter());
     registerAdapter(ExamAdapter());
     registerAdapter(ExamTypeAdapter());
+    registerAdapter(ExceptionTypeAdapter());
     registerAdapter(LessonAdapter());
     registerAdapter(LessonTypeAdapter());
     registerAdapter(PriorityAdapter());
+    registerAdapter(ScheduleExceptionAdapter());
+    registerAdapter(ScheduleProfileAdapter());
+    registerAdapter(SemesterPeriodAdapter());
+    registerAdapter(SemesterPeriodTypeAdapter());
+    registerAdapter(StartupBehaviorAdapter());
     registerAdapter(TaskAdapter());
     registerAdapter(WeekTypeAdapter());
   }
@@ -28,9 +37,15 @@ extension IsolatedHiveRegistrar on IsolatedHiveInterface {
     registerAdapter(AppThemeModeAdapter());
     registerAdapter(ExamAdapter());
     registerAdapter(ExamTypeAdapter());
+    registerAdapter(ExceptionTypeAdapter());
     registerAdapter(LessonAdapter());
     registerAdapter(LessonTypeAdapter());
     registerAdapter(PriorityAdapter());
+    registerAdapter(ScheduleExceptionAdapter());
+    registerAdapter(ScheduleProfileAdapter());
+    registerAdapter(SemesterPeriodAdapter());
+    registerAdapter(SemesterPeriodTypeAdapter());
+    registerAdapter(StartupBehaviorAdapter());
     registerAdapter(TaskAdapter());
     registerAdapter(WeekTypeAdapter());
   }
