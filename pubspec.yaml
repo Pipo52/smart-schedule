@@ -43,6 +43,7 @@ dependencies:
   uuid: ^4.6.0
   intl: ^0.20.3
   google_generative_ai: ^0.4.6
+  google_fonts: ^6.3.2
   flutter_localizations:
     sdk: flutter
 

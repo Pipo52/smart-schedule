@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import 'l10n/generated/app_localizations.dart';
@@ -83,6 +84,14 @@ class _AppViewState extends State<_AppView> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsProvider>();
+    final lightColorScheme = ColorScheme.fromSeed(
+      seedColor: Colors.indigo,
+      brightness: Brightness.light,
+    );
+    final darkColorScheme = ColorScheme.fromSeed(
+      seedColor: Colors.indigo,
+      brightness: Brightness.dark,
+    );
 
     return MaterialApp(
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
@@ -91,14 +100,15 @@ class _AppViewState extends State<_AppView> with WidgetsBindingObserver {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       themeMode: settings.themeMode,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: lightColorScheme,
+        textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme),
+        scaffoldBackgroundColor: const Color(0xFFF8F9FD),
         useMaterial3: true,
       ),
       darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
-          brightness: Brightness.dark,
-        ),
+        colorScheme: darkColorScheme,
+        textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
+        scaffoldBackgroundColor: const Color(0xFF121212),
         useMaterial3: true,
       ),
       home: const RootShell(),
