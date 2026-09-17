@@ -52,23 +52,32 @@ class AcademicCalendarScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: ListView(
+      body: ListView.builder(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-        children: [
-          Text(
-            l10n.periodLegend,
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
-          const SizedBox(height: 8),
-          _PeriodLegend(),
-          if (periods.periods.isEmpty)
-            EmptyState(
-              icon: Icons.date_range_outlined,
-              title: l10n.emptyPeriodsTitle,
-              subtitle: l10n.emptyPeriodsSubtitle,
-            ),
-          for (var offset = 0; offset < 12; offset++)
-            _MonthGrid(
+        itemCount: 13,
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.periodLegend,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                const SizedBox(height: 8),
+                _PeriodLegend(),
+                if (periods.periods.isEmpty)
+                  EmptyState(
+                    icon: Icons.date_range_outlined,
+                    title: l10n.emptyPeriodsTitle,
+                    subtitle: l10n.emptyPeriodsSubtitle,
+                  ),
+              ],
+            );
+          }
+          final offset = index - 1;
+          return RepaintBoundary(
+            child: _MonthGrid(
               year:
                   academicYearStart.year +
                   ((academicYearStart.month - 1 + offset) ~/ 12),
@@ -77,7 +86,8 @@ class AcademicCalendarScreen extends StatelessWidget {
               periodProvider: periods,
               localeCode: localeCode,
             ),
-        ],
+          );
+        },
       ),
     );
   }

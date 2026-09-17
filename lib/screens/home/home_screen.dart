@@ -298,145 +298,185 @@ class _HomeScreenState extends State<HomeScreen> {
         onPressed: _showAddOptions,
         child: const Icon(Icons.add),
       ),
-      body: ListView(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(
-                  child: Text(
-                    l10n.todayHeader(todayWeekdayName, actualWeek),
-                    style: Theme.of(context).textTheme.titleLarge,
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          l10n.todayHeader(todayWeekdayName, actualWeek),
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                      ),
+                      WeekBadge(week: actualWeek),
+                    ],
                   ),
                 ),
-                WeekBadge(week: actualWeek),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: WeekSwitcher(
+                    selectedWeek: previewWeek,
+                    actualWeek: actualWeek,
+                    onChanged: (week) => setState(() => _previewWeek = week),
+                  ),
+                ),
+                if (previewWeek != actualWeek)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                    child: Text(
+                      l10n.viewingAheadBanner(
+                        previewWeek == 1 ? l10n.week1Short : l10n.week2Short,
+                      ),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 12),
+                DaySelector(
+                  selectedWeekday: _selectedWeekday,
+                  localeCode: localeCode,
+                  onChanged: (weekday) =>
+                      setState(() => _selectedWeekday = weekday),
+                ),
+                const SizedBox(height: 8),
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: WeekSwitcher(
-              selectedWeek: previewWeek,
-              actualWeek: actualWeek,
-              onChanged: (week) => setState(() => _previewWeek = week),
-            ),
-          ),
-          if (previewWeek != actualWeek)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-              child: Text(
-                l10n.viewingAheadBanner(
-                  previewWeek == 1 ? l10n.week1Short : l10n.week2Short,
-                ),
-                style: Theme.of(context).textTheme.bodySmall
-                    ?.copyWith(color: Theme.of(context).colorScheme.primary),
-              ),
-            ),
-          const SizedBox(height: 12),
-          DaySelector(
-            selectedWeekday: _selectedWeekday,
-            localeCode: localeCode,
-            onChanged: (weekday) => setState(() => _selectedWeekday = weekday),
-          ),
-          const SizedBox(height: 8),
           if (lessons.isEmpty)
-            EmptyState(
-              icon: Icons.free_breakfast_outlined,
-              title: l10n.emptyLessonsTitle,
-              subtitle: l10n.emptyLessonsSubtitle,
+            SliverToBoxAdapter(
+              child: EmptyState(
+                icon: Icons.free_breakfast_outlined,
+                title: l10n.emptyLessonsTitle,
+                subtitle: l10n.emptyLessonsSubtitle,
+              ),
             )
           else
-            Padding(
+            SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                children: effectiveLessons.map((entry) {
-                  final lesson = entry.modification != null
-                      ? entry.lesson.copyWith(
-                          startTime: entry.modification!.newStartTime,
-                          endTime: entry.modification!.newEndTime,
-                          room: entry.modification!.newRoom,
-                          lecturer: entry.modification!.newLecturer,
-                          notes: entry.modification!.newNotes,
-                        )
-                      : entry.lesson;
-
-                  return Opacity(
-                    opacity: entry.isCancelled ? 0.4 : 1.0,
-                    child: Stack(
-                      children: [
-                        LessonCard(
-                          lesson: lesson,
-                          onTap: entry.isCancelled
-                              ? null
-                              : () => _showLessonActions(
-                                  context,
-                                  entry.lesson,
-                                  targetDate,
-                                ),
-                        ),
-                        if (entry.isCancelled)
-                          Positioned(
-                            top: 8,
-                            right: 12,
-                            child: Chip(
-                              label: Text(l10n.cancelledBadge),
-                              labelStyle: const TextStyle(fontSize: 11),
-                              padding: EdgeInsets.zero,
-                              visualDensity: VisualDensity.compact,
-                            ),
-                          ),
-                        if (entry.modification != null && !entry.isCancelled)
-                          Positioned(
-                            top: 8,
-                            right: 12,
-                            child: Chip(
-                              label: Text(l10n.modifiedBadge),
-                              labelStyle: const TextStyle(fontSize: 11),
-                              padding: EdgeInsets.zero,
-                              visualDensity: VisualDensity.compact,
-                              backgroundColor: Theme.of(context)
-                                  .colorScheme
-                                  .tertiaryContainer,
-                            ),
-                          ),
-                      ],
-                    ),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final entry = effectiveLessons[index];
+                  return _LessonOccurrenceTile(
+                    entry: entry,
+                    cancelledLabel: l10n.cancelledBadge,
+                    modifiedLabel: l10n.modifiedBadge,
+                    onOpenActions: () =>
+                        _showLessonActions(context, entry.lesson, targetDate),
                   );
-                }).toList(),
+                }, childCount: effectiveLessons.length),
               ),
             ),
-          const Divider(height: 32),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              l10n.tasksForTodaySection,
-              style: Theme.of(context).textTheme.titleMedium,
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Divider(height: 32),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    l10n.tasksForTodaySection,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
           if (dueTasks.isEmpty)
-            EmptyState(
-              icon: Icons.check_circle_outline,
-              title: l10n.emptyTasksTitle,
-              subtitle: l10n.emptyTasksSubtitle,
+            SliverToBoxAdapter(
+              child: EmptyState(
+                icon: Icons.check_circle_outline,
+                title: l10n.emptyTasksTitle,
+                subtitle: l10n.emptyTasksSubtitle,
+              ),
             )
           else
-            Padding(
+            SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                children: dueTasks
-                    .map(
-                      (task) => TaskTile(
-                        task: task,
-                        onToggleDone: () => tasks.toggleDone(task),
-                      ),
-                    )
-                    .toList(),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final task = dueTasks[index];
+                  return TaskTile(
+                    task: task,
+                    onToggleDone: () => tasks.toggleDone(task),
+                  );
+                }, childCount: dueTasks.length),
               ),
             ),
-          const SizedBox(height: 24),
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
+        ],
+      ),
+    );
+  }
+}
+
+class _LessonOccurrenceTile extends StatelessWidget {
+  const _LessonOccurrenceTile({
+    required this.entry,
+    required this.cancelledLabel,
+    required this.modifiedLabel,
+    required this.onOpenActions,
+  });
+
+  final ({Lesson lesson, bool isCancelled, ScheduleException? modification})
+  entry;
+  final String cancelledLabel;
+  final String modifiedLabel;
+  final VoidCallback onOpenActions;
+
+  @override
+  Widget build(BuildContext context) {
+    final lesson = entry.modification != null
+        ? entry.lesson.copyWith(
+            startTime: entry.modification!.newStartTime,
+            endTime: entry.modification!.newEndTime,
+            room: entry.modification!.newRoom,
+            lecturer: entry.modification!.newLecturer,
+            notes: entry.modification!.newNotes,
+          )
+        : entry.lesson;
+
+    return Opacity(
+      opacity: entry.isCancelled ? 0.4 : 1.0,
+      child: Stack(
+        children: [
+          LessonCard(
+            lesson: lesson,
+            onTap: entry.isCancelled ? null : onOpenActions,
+          ),
+          if (entry.isCancelled)
+            Positioned(
+              top: 8,
+              right: 12,
+              child: Chip(
+                label: Text(cancelledLabel),
+                labelStyle: const TextStyle(fontSize: 11),
+                padding: EdgeInsets.zero,
+                visualDensity: VisualDensity.compact,
+              ),
+            ),
+          if (entry.modification != null && !entry.isCancelled)
+            Positioned(
+              top: 8,
+              right: 12,
+              child: Chip(
+                label: Text(modifiedLabel),
+                labelStyle: const TextStyle(fontSize: 11),
+                padding: EdgeInsets.zero,
+                visualDensity: VisualDensity.compact,
+                backgroundColor: Theme.of(context)
+                    .colorScheme
+                    .tertiaryContainer,
+              ),
+            ),
         ],
       ),
     );

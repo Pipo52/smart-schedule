@@ -37,21 +37,21 @@ class ExamsScreen extends StatelessWidget {
               title: l10n.emptyExamsTitle,
               subtitle: l10n.emptyExamsSubtitle,
             )
-          : ListView(
+          : ListView.builder(
               padding: const EdgeInsets.all(16),
-              children: exams
-                  .map(
-                    (exam) => ExamTile(
-                      exam: exam,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => ExamFormScreen(exam: exam),
-                        ),
-                      ),
-                      onDelete: () => examProvider.deleteExam(exam.id),
+              itemCount: exams.length,
+              itemBuilder: (context, index) {
+                final exam = exams[index];
+                return ExamTile(
+                  exam: exam,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => ExamFormScreen(exam: exam),
                     ),
-                  )
-                  .toList(),
+                  ),
+                  onDelete: () => examProvider.deleteExam(exam.id),
+                );
+              },
             ),
     );
   }

@@ -13,12 +13,21 @@ class ExamProvider extends ChangeNotifier {
   String _profileId;
   final Box<Exam> _box = HiveService.examsBox;
   List<Exam> _exams = <Exam>[];
+  List<Exam> _examsView = const [];
+  List<Exam> _upcoming = const [];
 
-  List<Exam> get exams => List.unmodifiable(_exams);
+  List<Exam> get exams => _examsView;
+
+  List<Exam> get upcoming => _upcoming;
 
   void _load() {
     _exams = _box.values.where((exam) => exam.profileId == _profileId).toList()
       ..sort((a, b) => a.date.compareTo(b.date));
+    _examsView = List.unmodifiable(_exams);
+    final now = DateTime.now();
+    _upcoming = List.unmodifiable(
+      _exams.where((e) => e.date.isAfter(now)).toList(),
+    );
   }
 
   void updateProfileId(String id) {
@@ -27,9 +36,6 @@ class ExamProvider extends ChangeNotifier {
     _load();
     notifyListeners();
   }
-
-  List<Exam> get upcoming =>
-      _exams.where((e) => e.date.isAfter(DateTime.now())).toList();
 
   Future<void> saveExam(Exam exam) async {
     exam.profileId = _profileId;

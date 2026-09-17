@@ -13,8 +13,12 @@ class ScheduleExceptionProvider extends ChangeNotifier {
   final Box<ScheduleException> _box = HiveService.exceptionsBox;
   String _profileId;
   List<ScheduleException> _exceptions = [];
+  List<ScheduleException> _exceptionsView = const [];
+  Set<String> _cancelledKeys = const {};
+  Map<String, ScheduleException> _modifications = const {};
+  Map<String, List<ScheduleException>> _exceptionsByDate = const {};
 
-  List<ScheduleException> get exceptions => List.unmodifiable(_exceptions);
+  List<ScheduleException> get exceptions => _exceptionsView;
 
   void updateProfileId(String id) {
     if (_profileId == id) return;
@@ -25,40 +29,48 @@ class ScheduleExceptionProvider extends ChangeNotifier {
 
   void _load() {
     _exceptions = _box.values.where((e) => e.profileId == _profileId).toList();
+    _exceptionsView = List.unmodifiable(_exceptions);
+
+    final cancelledKeys = <String>{};
+    final modifications = <String, ScheduleException>{};
+    final byDate = <String, List<ScheduleException>>{};
+
+    for (final exception in _exceptions) {
+      final dateKey = _dateKey(exception.date);
+      final lookupKey = '${exception.lessonId}|$dateKey';
+      (byDate[dateKey] ??= <ScheduleException>[]).add(exception);
+      if (exception.type == ExceptionType.cancelled) {
+        cancelledKeys.add(lookupKey);
+      } else if (exception.type == ExceptionType.modified) {
+        modifications[lookupKey] = exception;
+      }
+    }
+
+    _cancelledKeys = cancelledKeys;
+    _modifications = modifications;
+    _exceptionsByDate = {
+      for (final entry in byDate.entries)
+        entry.key: List.unmodifiable(entry.value),
+    };
   }
 
-  /// Нормализует дату до полуночи для корректного сравнения.
-  static DateTime _normalize(DateTime date) =>
-      DateTime(date.year, date.month, date.day);
+  static String _dateKey(DateTime date) =>
+      '${date.year}-${date.month}-${date.day}';
+
+  static String _lookupKey(String lessonId, DateTime date) =>
+      '$lessonId|${_dateKey(date)}';
 
   /// Проверяет, отменена ли конкретная пара на конкретную дату.
-  bool isCancelled(String lessonId, DateTime date) {
-    final d = _normalize(date);
-    return _exceptions.any(
-      (e) =>
-          e.lessonId == lessonId &&
-          e.type == ExceptionType.cancelled &&
-          _normalize(e.date) == d,
-    );
-  }
+  bool isCancelled(String lessonId, DateTime date) =>
+      _cancelledKeys.contains(_lookupKey(lessonId, date));
 
   /// Возвращает исключение типа modified для конкретной пары на конкретную дату.
-  ScheduleException? getModification(String lessonId, DateTime date) {
-    final d = _normalize(date);
-    return _exceptions.cast<ScheduleException?>().firstWhere(
-      (e) =>
-          e!.lessonId == lessonId &&
-          e.type == ExceptionType.modified &&
-          _normalize(e.date) == d,
-      orElse: () => null,
-    );
-  }
+  ScheduleException? getModification(String lessonId, DateTime date) =>
+      _modifications[_lookupKey(lessonId, date)];
 
   /// Возвращает все исключения на конкретную дату.
-  List<ScheduleException> exceptionsForDate(DateTime date) {
-    final d = _normalize(date);
-    return _exceptions.where((e) => _normalize(e.date) == d).toList();
-  }
+  List<ScheduleException> exceptionsForDate(DateTime date) =>
+      _exceptionsByDate[_dateKey(date)] ?? const [];
 
   Future<void> saveException(ScheduleException exception) async {
     await _box.put(exception.id, exception);

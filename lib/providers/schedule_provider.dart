@@ -4,7 +4,6 @@ import 'package:hive_ce/hive.dart';
 import '../models/lesson.dart';
 import '../services/hive_service.dart';
 import '../services/notification_service.dart';
-import '../services/week_calculator.dart';
 import 'settings_provider.dart';
 
 /// Owns the `Lesson` collection: CRUD + (re)scheduling notifications
@@ -23,13 +22,47 @@ class ScheduleProvider extends ChangeNotifier {
   String _profileId;
   final Box<Lesson> _box = HiveService.lessonsBox;
   List<Lesson> _lessons = <Lesson>[];
+  List<Lesson> _lessonsView = const [];
 
-  List<Lesson> get lessons => List.unmodifiable(_lessons);
+  /// weekday 1..6 → week 1/2 buckets, already sorted by start time.
+  List<List<List<Lesson>>> _lessonsForDay = _emptyDayBuckets();
+
+  List<Lesson> get lessons => _lessonsView;
+
+  static List<List<List<Lesson>>> _emptyDayBuckets() =>
+      List<List<List<Lesson>>>.generate(
+        7,
+        (_) => <List<Lesson>>[const [], const []],
+      );
 
   void _loadLessons() {
     _lessons =
         _box.values.where((lesson) => lesson.profileId == _profileId).toList()
           ..sort((a, b) => a.startMinutes.compareTo(b.startMinutes));
+    _lessonsView = List.unmodifiable(_lessons);
+    _rebuildDayBuckets();
+  }
+
+  void _rebuildDayBuckets() {
+    final buckets = List<List<List<Lesson>>>.generate(
+      7,
+      (_) => <List<Lesson>>[<Lesson>[], <Lesson>[]],
+    );
+    for (final lesson in _lessons) {
+      final weekday = lesson.weekday;
+      if (weekday < 1 || weekday > 6) continue;
+      if (lesson.weekType != WeekType.week2) {
+        buckets[weekday][0].add(lesson);
+      }
+      if (lesson.weekType != WeekType.week1) {
+        buckets[weekday][1].add(lesson);
+      }
+    }
+    for (var weekday = 1; weekday <= 6; weekday++) {
+      buckets[weekday][0] = List.unmodifiable(buckets[weekday][0]);
+      buckets[weekday][1] = List.unmodifiable(buckets[weekday][1]);
+    }
+    _lessonsForDay = buckets;
   }
 
   void updateProfileId(String id) {
@@ -56,18 +89,10 @@ class ScheduleProvider extends ChangeNotifier {
   }
 
   List<Lesson> lessonsForDay({required int weekday, required int week}) {
-    final result = _lessons
-        .where(
-          (l) =>
-              l.weekday == weekday &&
-              WeekCalculator.isLessonActiveOnWeek(
-                weekType: l.weekType,
-                week: week,
-              ),
-        )
-        .toList();
-    result.sort((a, b) => a.startMinutes.compareTo(b.startMinutes));
-    return result;
+    if (weekday < 1 || weekday > 6 || week < 1 || week > 2) {
+      return const [];
+    }
+    return _lessonsForDay[weekday][week - 1];
   }
 
   Future<void> saveLesson(Lesson lesson) async {

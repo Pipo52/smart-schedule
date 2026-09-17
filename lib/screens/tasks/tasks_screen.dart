@@ -11,6 +11,23 @@ import 'task_form_screen.dart';
 
 enum _SortMode { date, priority }
 
+enum _TasksRowKind { header, task, spacer }
+
+class _TasksRow {
+  const _TasksRow.header(this.title) : kind = _TasksRowKind.header, task = null;
+
+  const _TasksRow.task(this.task) : kind = _TasksRowKind.task, title = null;
+
+  const _TasksRow.spacer()
+    : kind = _TasksRowKind.spacer,
+      title = null,
+      task = null;
+
+  final _TasksRowKind kind;
+  final String? title;
+  final Task? task;
+}
+
 class TasksScreen extends StatefulWidget {
   const TasksScreen({super.key, required this.onOpenDrawer});
 
@@ -47,8 +64,13 @@ class _TasksScreenState extends State<TasksScreen> {
     final today = <Task>[];
     final thisWeek = <Task>[];
     final later = <Task>[];
+    final done = <Task>[];
 
-    for (final task in tasks.where((t) => !t.isDone)) {
+    for (final task in tasks) {
+      if (task.isDone) {
+        done.add(task);
+        continue;
+      }
       if (task.dueDate.isBefore(startOfToday)) {
         overdue.add(task);
       } else if (task.dueDate.isBefore(endOfToday)) {
@@ -59,14 +81,24 @@ class _TasksScreenState extends State<TasksScreen> {
         later.add(task);
       }
     }
-    final done = tasks.where((t) => t.isDone).toList();
 
-    final allEmpty =
-        overdue.isEmpty &&
-        today.isEmpty &&
-        thisWeek.isEmpty &&
-        later.isEmpty &&
-        done.isEmpty;
+    final rows = <_TasksRow>[];
+    void addSection(String title, List<Task> sectionTasks) {
+      if (sectionTasks.isEmpty) return;
+      rows.add(_TasksRow.header(title));
+      for (final task in sectionTasks) {
+        rows.add(_TasksRow.task(task));
+      }
+    }
+
+    addSection(l10n.groupOverdue, overdue);
+    addSection(l10n.groupToday, today);
+    addSection(l10n.groupThisWeek, thisWeek);
+    addSection(l10n.groupLater, later);
+    addSection(l10n.done, done);
+    if (rows.isNotEmpty) {
+      rows.add(const _TasksRow.spacer());
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -98,59 +130,39 @@ class _TasksScreenState extends State<TasksScreen> {
             .push(MaterialPageRoute(builder: (_) => const TaskFormScreen())),
         child: const Icon(Icons.add),
       ),
-      body: allEmpty
+      body: rows.isEmpty
           ? EmptyState(
               icon: Icons.checklist_outlined,
               title: l10n.emptyTasksTitle,
               subtitle: l10n.emptyTasksSubtitle,
             )
-          : ListView(
-              children: [
-                if (overdue.isNotEmpty) ...[
-                  SectionHeader(l10n.groupOverdue),
-                  ..._tiles(context, overdue, taskProvider),
-                ],
-                if (today.isNotEmpty) ...[
-                  SectionHeader(l10n.groupToday),
-                  ..._tiles(context, today, taskProvider),
-                ],
-                if (thisWeek.isNotEmpty) ...[
-                  SectionHeader(l10n.groupThisWeek),
-                  ..._tiles(context, thisWeek, taskProvider),
-                ],
-                if (later.isNotEmpty) ...[
-                  SectionHeader(l10n.groupLater),
-                  ..._tiles(context, later, taskProvider),
-                ],
-                if (done.isNotEmpty) ...[
-                  SectionHeader(l10n.done),
-                  ..._tiles(context, done, taskProvider),
-                ],
-                const SizedBox(height: 24),
-              ],
+          : ListView.builder(
+              itemCount: rows.length,
+              itemBuilder: (context, index) {
+                final row = rows[index];
+                switch (row.kind) {
+                  case _TasksRowKind.header:
+                    return SectionHeader(row.title!);
+                  case _TasksRowKind.spacer:
+                    return const SizedBox(height: 24);
+                  case _TasksRowKind.task:
+                    final task = row.task!;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: TaskTile(
+                        task: task,
+                        onToggleDone: () => taskProvider.toggleDone(task),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => TaskFormScreen(task: task),
+                          ),
+                        ),
+                        onDelete: () => taskProvider.deleteTask(task.id),
+                      ),
+                    );
+                }
+              },
             ),
     );
-  }
-
-  List<Widget> _tiles(
-    BuildContext context,
-    List<Task> tasks,
-    TaskProvider provider,
-  ) {
-    return tasks
-        .map(
-          (task) => Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: TaskTile(
-              task: task,
-              onToggleDone: () => provider.toggleDone(task),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => TaskFormScreen(task: task)),
-              ),
-              onDelete: () => provider.deleteTask(task.id),
-            ),
-          ),
-        )
-        .toList();
   }
 }

@@ -13,12 +13,47 @@ class TaskProvider extends ChangeNotifier {
   String _profileId;
   final Box<Task> _box = HiveService.tasksBox;
   List<Task> _tasks = <Task>[];
+  List<Task> _tasksView = const [];
+  List<Task> _pending = const [];
+  List<Task> _dueTodayOrOverdue = const [];
+  Map<String, List<Task>> _tasksByExam = const {};
 
-  List<Task> get tasks => List.unmodifiable(_tasks);
+  List<Task> get tasks => _tasksView;
+
+  List<Task> get pending => _pending;
+
+  /// Overdue or due today (used on the Home screen).
+  List<Task> get dueTodayOrOverdue => _dueTodayOrOverdue;
 
   void _load() {
     _tasks = _box.values.where((task) => task.profileId == _profileId).toList()
       ..sort((a, b) => a.dueDate.compareTo(b.dueDate));
+    _tasksView = List.unmodifiable(_tasks);
+
+    final pending = <Task>[];
+    final dueTodayOrOverdue = <Task>[];
+    final tasksByExam = <String, List<Task>>{};
+    final endOfToday = _endOfDay(DateTime.now());
+
+    for (final task in _tasks) {
+      if (!task.isDone) {
+        pending.add(task);
+        if (!task.dueDate.isAfter(endOfToday)) {
+          dueTodayOrOverdue.add(task);
+        }
+      }
+      final examId = task.linkedExamId;
+      if (examId != null) {
+        (tasksByExam[examId] ??= <Task>[]).add(task);
+      }
+    }
+
+    _pending = List.unmodifiable(pending);
+    _dueTodayOrOverdue = List.unmodifiable(dueTodayOrOverdue);
+    _tasksByExam = {
+      for (final entry in tasksByExam.entries)
+        entry.key: List.unmodifiable(entry.value),
+    };
   }
 
   void updateProfileId(String id) {
@@ -28,16 +63,7 @@ class TaskProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  List<Task> get pending => _tasks.where((t) => !t.isDone).toList();
-
-  /// Overdue or due today (used on the Home screen).
-  List<Task> get dueTodayOrOverdue {
-    final endOfToday = _endOfDay(DateTime.now());
-    return pending.where((t) => !t.dueDate.isAfter(endOfToday)).toList();
-  }
-
-  List<Task> tasksForExam(String examId) =>
-      _tasks.where((t) => t.linkedExamId == examId).toList();
+  List<Task> tasksForExam(String examId) => _tasksByExam[examId] ?? const [];
 
   DateTime _endOfDay(DateTime d) =>
       DateTime(d.year, d.month, d.day, 23, 59, 59);

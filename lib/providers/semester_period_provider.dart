@@ -12,8 +12,11 @@ class SemesterPeriodProvider extends ChangeNotifier {
   final Box<SemesterPeriod> _box = HiveService.periodsBox;
   String _profileId;
   List<SemesterPeriod> _periods = [];
+  List<SemesterPeriod> _periodsView = const [];
+  Map<int, SemesterPeriodType> _typeByDay = const {};
+  Map<int, Color> _colorByDay = const {};
 
-  List<SemesterPeriod> get periods => List.unmodifiable(_periods);
+  List<SemesterPeriod> get periods => _periodsView;
 
   void updateProfileId(String id) {
     if (_profileId == id) return;
@@ -25,52 +28,48 @@ class SemesterPeriodProvider extends ChangeNotifier {
   void _load() {
     _periods = _box.values.where((p) => p.profileId == _profileId).toList()
       ..sort((a, b) => a.startDate.compareTo(b.startDate));
+    _periodsView = List.unmodifiable(_periods);
+    _rebuildDayLookups();
   }
+
+  void _rebuildDayLookups() {
+    final typeByDay = <int, SemesterPeriodType>{};
+    final colorByDay = <int, Color>{};
+    for (final period in _periods) {
+      var day = DateTime(
+        period.startDate.year,
+        period.startDate.month,
+        period.startDate.day,
+      );
+      final end = DateTime(
+        period.endDate.year,
+        period.endDate.month,
+        period.endDate.day,
+      );
+      final color = period.colorValue != null
+          ? Color(period.colorValue!)
+          : period.type.defaultColor;
+      while (!day.isAfter(end)) {
+        final key = _dayKey(day);
+        typeByDay.putIfAbsent(key, () => period.type);
+        colorByDay.putIfAbsent(key, () => color);
+        day = day.add(const Duration(days: 1));
+      }
+    }
+    _typeByDay = typeByDay;
+    _colorByDay = colorByDay;
+  }
+
+  static int _dayKey(DateTime date) =>
+      date.year * 10000 + date.month * 100 + date.day;
 
   /// Возвращает тип периода для конкретной даты (или null если дата не входит
   /// ни в один период).
-  SemesterPeriodType? periodTypeForDate(DateTime date) {
-    final normalized = DateTime(date.year, date.month, date.day);
-    for (final period in _periods) {
-      final start = DateTime(
-        period.startDate.year,
-        period.startDate.month,
-        period.startDate.day,
-      );
-      final end = DateTime(
-        period.endDate.year,
-        period.endDate.month,
-        period.endDate.day,
-      );
-      if (!normalized.isBefore(start) && !normalized.isAfter(end)) {
-        return period.type;
-      }
-    }
-    return null;
-  }
+  SemesterPeriodType? periodTypeForDate(DateTime date) =>
+      _typeByDay[_dayKey(date)];
 
   /// Возвращает цвет для конкретной даты, включая пользовательский цвет.
-  Color? colorForDate(DateTime date) {
-    final normalized = DateTime(date.year, date.month, date.day);
-    for (final period in _periods) {
-      final start = DateTime(
-        period.startDate.year,
-        period.startDate.month,
-        period.startDate.day,
-      );
-      final end = DateTime(
-        period.endDate.year,
-        period.endDate.month,
-        period.endDate.day,
-      );
-      if (!normalized.isBefore(start) && !normalized.isAfter(end)) {
-        return period.colorValue != null
-            ? Color(period.colorValue!)
-            : period.type.defaultColor;
-      }
-    }
-    return null;
-  }
+  Color? colorForDate(DateTime date) => _colorByDay[_dayKey(date)];
 
   Future<void> savePeriod(SemesterPeriod period) async {
     await _box.put(period.id, period);
