@@ -1,5 +1,6 @@
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
 
+import '../hive_registrar.g.dart';
 import '../models/app_settings.dart';
 import '../models/exam.dart';
 import '../models/lesson.dart';
@@ -24,16 +25,7 @@ class HiveService {
     if (_initialized) return;
 
     await Hive.initFlutter();
-
-    Hive.registerAdapter(LessonTypeAdapter());
-    Hive.registerAdapter(WeekTypeAdapter());
-    Hive.registerAdapter(LessonAdapter());
-    Hive.registerAdapter(PriorityAdapter());
-    Hive.registerAdapter(TaskAdapter());
-    Hive.registerAdapter(ExamTypeAdapter());
-    Hive.registerAdapter(ExamAdapter());
-    Hive.registerAdapter(AppThemeModeAdapter());
-    Hive.registerAdapter(AppSettingsAdapter());
+    Hive.registerAdapters();
 
     await Future.wait([
       Hive.openBox<Lesson>(lessonsBoxName),
@@ -56,10 +48,17 @@ class HiveService {
   static AppSettings loadOrCreateSettings() {
     final box = settingsBox;
     final existing = box.get(settingsKey);
-    if (existing != null) return existing;
+    if (existing != null) {
+      if (existing.schemaVersion < 1) {
+        existing.schemaVersion = 1;
+        existing.save();
+      }
+      return existing;
+    }
 
     final settings = AppSettings(
       semesterReferenceDate: WeekCalculator.defaultReferenceMonday(),
+      schemaVersion: 1,
     );
     box.put(settingsKey, settings);
     return settings;

@@ -8,6 +8,7 @@ import '../../providers/schedule_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/task_provider.dart';
 import '../../services/backup_service.dart';
+import 'gemini_api_key_tile.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -242,6 +243,9 @@ class SettingsScreen extends StatelessWidget {
               onChanged: (code) => settings.setAppLocale(code),
             ),
           ),
+          const Divider(),
+          _SectionLabel(l10n.settingsAiSection),
+          const GeminiApiKeyTile(),
           const SizedBox(height: 24),
         ],
       ),

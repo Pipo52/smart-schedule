@@ -78,40 +78,24 @@ class NotificationService {
     }
 
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const darwinInit = DarwinInitializationSettings(
-      requestAlertPermission: false,
-      requestBadgePermission: false,
-      requestSoundPermission: false,
-    );
 
     await _plugin.initialize(
-      settings: const InitializationSettings(
-        android: androidInit,
-        iOS: darwinInit,
-      ),
+      settings: const InitializationSettings(android: androidInit),
     );
 
     _initialized = true;
   }
 
-  /// Requests POST_NOTIFICATIONS + exact-alarm permission on Android 13+/12+
-  /// and notification permission on iOS. Safe to call multiple times.
+  /// Requests POST_NOTIFICATIONS (Android 13+) and exact-alarm permission
+  /// (Android 12+). Safe to call multiple times.
   Future<void> requestPermissions() async {
-    if (kIsWeb) return;
-    if (Platform.isAndroid) {
-      final androidImpl = _plugin
-          .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin
-          >();
-      await androidImpl?.requestNotificationsPermission();
-      await androidImpl?.requestExactAlarmsPermission();
-    } else if (Platform.isIOS) {
-      final iosImpl = _plugin
-          .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin
-          >();
-      await iosImpl?.requestPermissions(alert: true, badge: true, sound: true);
-    }
+    if (kIsWeb || !Platform.isAndroid) return;
+    final androidImpl = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    await androidImpl?.requestNotificationsPermission();
+    await androidImpl?.requestExactAlarmsPermission();
   }
 
   /// Deterministic, well-distributed 31-bit positive id derived from an

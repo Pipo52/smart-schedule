@@ -8,7 +8,7 @@ part of 'task.dart';
 
 class TaskAdapter extends TypeAdapter<Task> {
   @override
-  final int typeId = 3;
+  final typeId = 3;
 
   @override
   Task read(BinaryReader reader) {
@@ -23,8 +23,8 @@ class TaskAdapter extends TypeAdapter<Task> {
       description: fields[3] as String?,
       dueDate: fields[4] as DateTime,
       priority: fields[5] as Priority,
-      isDone: fields[6] as bool,
-      reminderOffsetMinutes: fields[7] as int?,
+      isDone: fields[6] == null ? false : fields[6] as bool,
+      reminderOffsetMinutes: (fields[7] as num?)?.toInt(),
       linkedExamId: fields[8] as String?,
     );
   }
@@ -66,7 +66,7 @@ class TaskAdapter extends TypeAdapter<Task> {
 
 class PriorityAdapter extends TypeAdapter<Priority> {
   @override
-  final int typeId = 4;
+  final typeId = 4;
 
   @override
   Priority read(BinaryReader reader) {
@@ -87,13 +87,10 @@ class PriorityAdapter extends TypeAdapter<Priority> {
     switch (obj) {
       case Priority.low:
         writer.writeByte(0);
-        break;
       case Priority.medium:
         writer.writeByte(1);
-        break;
       case Priority.high:
         writer.writeByte(2);
-        break;
     }
   }
 

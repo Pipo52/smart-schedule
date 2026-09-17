@@ -1,6 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Notifications (Android 13+ runtime permission, requested via
          flutter_local_notifications at first launch). -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <!-- Exact alarms so lesson/task/exam reminders fire at the precise
          scheduled time (Android 12+). -->

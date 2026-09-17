@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.smartschedule.smart_schedule"
+    namespace = "com.smartschedule.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 

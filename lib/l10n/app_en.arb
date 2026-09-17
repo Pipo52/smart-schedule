@@ -145,6 +145,32 @@
   "languageUkrainian": "Українська",
   "languageRussian": "Русский",
 
+  "settingsAiSection": "AI features",
+  "settingsGeminiApiKey": "Gemini API key",
+  "settingsGeminiApiKeyHint": "Paste your API key",
+  "settingsGeminiApiKeyHelp": "Get your free API key at Google AI Studio",
+  "settingsGeminiApiKeySaved": "API key saved",
+
+  "addLessonAction": "Add lesson",
+  "manualEntry": "Manual entry",
+  "smartImport": "Smart Import",
+  "smartImportMissingKey": "Add a Gemini API key in Settings first.",
+  "smartImportLoading": "AI is reading your schedule…",
+  "smartImportEmpty": "No lessons were found in this file.",
+  "smartImportError": "Could not parse the schedule: {error}",
+  "@smartImportError": {
+    "placeholders": {"error": {"type": "String"}}
+  },
+  "smartImportFileTooLarge": "This file is too large. Please use a file under 15 MB.",
+  "smartImportMalformed": "The AI returned data we could not read. Try a clearer photo or PDF.",
+  "smartImportNetwork": "Network error. Check your connection and API key.",
+  "smartImportPreviewTitle": "Review imported lessons",
+  "smartImportSaveAll": "Save all",
+  "smartImportSaved": "{count} lessons added to your schedule",
+  "@smartImportSaved": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+
   "confirmDeleteTitle": "Delete?",
   "confirmDeleteLessonMessage": "This lesson and its reminders will be removed.",
   "confirmDeleteTaskMessage": "This task will be removed.",

@@ -60,13 +60,15 @@ class BackupService {
   /// Opens a file picker for a `.json` file and imports it, replacing all
   /// existing local data. Returns `true` if a file was picked and imported.
   static Future<bool> pickAndImport() async {
-    final file = await FilePicker.pickFile(
+    final files = await FilePicker.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['json'],
+      allowedExtensions: const ['json'],
     );
-    if (file?.path == null) return false;
+    if (files.isEmpty) return false;
+    final path = files.first.path;
+    if (path == null) return false;
 
-    final content = await File(file!.path!).readAsString();
+    final content = await File(path).readAsString();
     final Map<String, dynamic> data =
         jsonDecode(content) as Map<String, dynamic>;
     await importFromJson(data);
@@ -183,6 +185,7 @@ class BackupService {
       'defaultLessonReminderMinutes': s.defaultLessonReminderMinutes,
       'themeMode': s.themeMode.name,
       'appLocale': s.appLocale,
+      'schemaVersion': s.schemaVersion,
     };
   }
 
@@ -195,5 +198,6 @@ class BackupService {
       (j['themeMode'] as String?) ?? 'system',
     ),
     appLocale: j['appLocale'] as String?,
+    schemaVersion: j['schemaVersion'] as int? ?? 1,
   );
 }

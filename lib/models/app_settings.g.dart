@@ -8,7 +8,7 @@ part of 'app_settings.dart';
 
 class AppSettingsAdapter extends TypeAdapter<AppSettings> {
   @override
-  final int typeId = 7;
+  final typeId = 7;
 
   @override
   AppSettings read(BinaryReader reader) {
@@ -18,17 +18,23 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
     };
     return AppSettings(
       semesterReferenceDate: fields[0] as DateTime,
-      manualWeekOverride: fields[1] as int?,
-      defaultLessonReminderMinutes: fields[2] as int,
-      themeMode: fields[3] as AppThemeMode,
+      manualWeekOverride: (fields[1] as num?)?.toInt(),
+      defaultLessonReminderMinutes: fields[2] == null
+          ? 10
+          : (fields[2] as num).toInt(),
+      themeMode: fields[3] == null
+          ? AppThemeMode.system
+          : fields[3] as AppThemeMode,
       appLocale: fields[4] as String?,
+      schemaVersion: fields[5] == null ? 1 : (fields[5] as num).toInt(),
+      geminiApiKey: fields[6] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, AppSettings obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.semesterReferenceDate)
       ..writeByte(1)
@@ -38,7 +44,11 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       ..writeByte(3)
       ..write(obj.themeMode)
       ..writeByte(4)
-      ..write(obj.appLocale);
+      ..write(obj.appLocale)
+      ..writeByte(5)
+      ..write(obj.schemaVersion)
+      ..writeByte(6)
+      ..write(obj.geminiApiKey);
   }
 
   @override
@@ -54,7 +64,7 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
 
 class AppThemeModeAdapter extends TypeAdapter<AppThemeMode> {
   @override
-  final int typeId = 8;
+  final typeId = 8;
 
   @override
   AppThemeMode read(BinaryReader reader) {
@@ -75,13 +85,10 @@ class AppThemeModeAdapter extends TypeAdapter<AppThemeMode> {
     switch (obj) {
       case AppThemeMode.system:
         writer.writeByte(0);
-        break;
       case AppThemeMode.light:
         writer.writeByte(1);
-        break;
       case AppThemeMode.dark:
         writer.writeByte(2);
-        break;
     }
   }
 

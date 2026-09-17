@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -5,12 +6,15 @@ import '../../l10n/generated/app_localizations.dart';
 import '../../providers/schedule_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/task_provider.dart';
+import '../../services/ai_parser_service.dart';
+import '../../utils/smart_import_utils.dart';
 import '../../utils/weekday_utils.dart';
 import '../../widgets/day_selector.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/lesson_card.dart';
 import '../../widgets/task_tile.dart';
 import '../../widgets/week_badge.dart';
+import '../schedule/import_preview_screen.dart';
 import '../schedule/lesson_form_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -29,6 +33,105 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     final today = DateTime.now().weekday; // 1..7
     _selectedWeekday = today >= 1 && today <= 6 ? today : 1;
+  }
+
+  Future<void> _showAddOptions() async {
+    final l10n = AppLocalizations.of(context);
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.edit_outlined),
+                title: Text(l10n.manualEntry),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const LessonFormScreen(),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.auto_awesome),
+                title: Text(l10n.smartImport),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  _smartImport();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _smartImport() async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final apiKey = context.read<SettingsProvider>().settings.geminiApiKey;
+    if (apiKey == null || apiKey.trim().isEmpty) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.smartImportMissingKey)));
+      return;
+    }
+
+    final files = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: const ['pdf', 'png', 'jpg', 'jpeg'],
+    );
+    if (files.isEmpty || !mounted) return;
+    final path = files.first.path;
+    if (path == null) return;
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return PopScope(
+          canPop: false,
+          child: AlertDialog(
+            content: Row(
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(width: 16),
+                Expanded(child: Text(l10n.smartImportLoading)),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    try {
+      final lessons = await AiParserService().parseScheduleFromFile(
+        path,
+        mimeTypeForPath(path),
+        apiKey,
+      );
+      if (!mounted) return;
+      Navigator.of(context, rootNavigator: true).pop();
+      final savedCount = await Navigator.of(context).push<int>(
+        MaterialPageRoute(
+          builder: (_) => ImportPreviewScreen(parsedLessons: lessons),
+        ),
+      );
+      if (!mounted || savedCount == null) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.smartImportSaved(savedCount))),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      Navigator.of(context, rootNavigator: true).pop();
+      messenger.showSnackBar(
+        SnackBar(content: Text(messageForAiParserError(l10n, error))),
+      );
+    }
   }
 
   @override
@@ -56,8 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.appTitle)),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.of(context)
-            .push(MaterialPageRoute(builder: (_) => const LessonFormScreen())),
+        onPressed: _showAddOptions,
         child: const Icon(Icons.add),
       ),
       body: ListView(

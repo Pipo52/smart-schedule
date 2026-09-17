@@ -357,6 +357,68 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageRussian => 'Русский';
 
   @override
+  String get settingsAiSection => 'AI features';
+
+  @override
+  String get settingsGeminiApiKey => 'Gemini API key';
+
+  @override
+  String get settingsGeminiApiKeyHint => 'Paste your API key';
+
+  @override
+  String get settingsGeminiApiKeyHelp =>
+      'Get your free API key at Google AI Studio';
+
+  @override
+  String get settingsGeminiApiKeySaved => 'API key saved';
+
+  @override
+  String get addLessonAction => 'Add lesson';
+
+  @override
+  String get manualEntry => 'Manual entry';
+
+  @override
+  String get smartImport => 'Smart Import';
+
+  @override
+  String get smartImportMissingKey => 'Add a Gemini API key in Settings first.';
+
+  @override
+  String get smartImportLoading => 'AI is reading your schedule…';
+
+  @override
+  String get smartImportEmpty => 'No lessons were found in this file.';
+
+  @override
+  String smartImportError(String error) {
+    return 'Could not parse the schedule: $error';
+  }
+
+  @override
+  String get smartImportFileTooLarge =>
+      'This file is too large. Please use a file under 15 MB.';
+
+  @override
+  String get smartImportMalformed =>
+      'The AI returned data we could not read. Try a clearer photo or PDF.';
+
+  @override
+  String get smartImportNetwork =>
+      'Network error. Check your connection and API key.';
+
+  @override
+  String get smartImportPreviewTitle => 'Review imported lessons';
+
+  @override
+  String get smartImportSaveAll => 'Save all';
+
+  @override
+  String smartImportSaved(int count) {
+    return '$count lessons added to your schedule';
+  }
+
+  @override
   String get confirmDeleteTitle => 'Delete?';
 
   @override

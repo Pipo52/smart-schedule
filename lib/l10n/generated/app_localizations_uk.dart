@@ -359,6 +359,69 @@ class AppLocalizationsUk extends AppLocalizations {
   String get languageRussian => 'Русский';
 
   @override
+  String get settingsAiSection => 'Функції ШІ';
+
+  @override
+  String get settingsGeminiApiKey => 'Ключ Gemini API';
+
+  @override
+  String get settingsGeminiApiKeyHint => 'Вставте ваш API-ключ';
+
+  @override
+  String get settingsGeminiApiKeyHelp =>
+      'Безкоштовний ключ можна отримати в Google AI Studio';
+
+  @override
+  String get settingsGeminiApiKeySaved => 'API-ключ збережено';
+
+  @override
+  String get addLessonAction => 'Додати пару';
+
+  @override
+  String get manualEntry => 'Вручну';
+
+  @override
+  String get smartImport => 'Розумний імпорт';
+
+  @override
+  String get smartImportMissingKey =>
+      'Спочатку додайте ключ Gemini API у Налаштуваннях.';
+
+  @override
+  String get smartImportLoading => 'ШІ читає ваш розклад…';
+
+  @override
+  String get smartImportEmpty => 'У файлі не знайдено пар.';
+
+  @override
+  String smartImportError(String error) {
+    return 'Не вдалося розібрати розклад: $error';
+  }
+
+  @override
+  String get smartImportFileTooLarge =>
+      'Файл завеликий. Оберіть файл менше 15 МБ.';
+
+  @override
+  String get smartImportMalformed =>
+      'ШІ повернув дані, які не вдалося прочитати. Спробуйте чіткіше фото або PDF.';
+
+  @override
+  String get smartImportNetwork =>
+      'Помилка мережі. Перевірте з’єднання та API-ключ.';
+
+  @override
+  String get smartImportPreviewTitle => 'Перевірка імпортованих пар';
+
+  @override
+  String get smartImportSaveAll => 'Зберегти всі';
+
+  @override
+  String smartImportSaved(int count) {
+    return 'Додано пар: $count';
+  }
+
+  @override
   String get confirmDeleteTitle => 'Видалити?';
 
   @override

@@ -8,7 +8,7 @@ part of 'lesson.dart';
 
 class LessonAdapter extends TypeAdapter<Lesson> {
   @override
-  final int typeId = 0;
+  final typeId = 0;
 
   @override
   Lesson read(BinaryReader reader) {
@@ -24,10 +24,10 @@ class LessonAdapter extends TypeAdapter<Lesson> {
       lecturer: fields[4] as String,
       startTime: fields[5] as String,
       endTime: fields[6] as String,
-      weekday: fields[7] as int,
+      weekday: (fields[7] as num).toInt(),
       weekType: fields[8] as WeekType,
       notes: fields[9] as String?,
-      reminderEnabled: fields[10] as bool,
+      reminderEnabled: fields[10] == null ? true : fields[10] as bool,
     );
   }
 
@@ -72,7 +72,7 @@ class LessonAdapter extends TypeAdapter<Lesson> {
 
 class LessonTypeAdapter extends TypeAdapter<LessonType> {
   @override
-  final int typeId = 1;
+  final typeId = 1;
 
   @override
   LessonType read(BinaryReader reader) {
@@ -93,13 +93,10 @@ class LessonTypeAdapter extends TypeAdapter<LessonType> {
     switch (obj) {
       case LessonType.lecture:
         writer.writeByte(0);
-        break;
       case LessonType.practical:
         writer.writeByte(1);
-        break;
       case LessonType.laboratory:
         writer.writeByte(2);
-        break;
     }
   }
 
@@ -116,7 +113,7 @@ class LessonTypeAdapter extends TypeAdapter<LessonType> {
 
 class WeekTypeAdapter extends TypeAdapter<WeekType> {
   @override
-  final int typeId = 2;
+  final typeId = 2;
 
   @override
   WeekType read(BinaryReader reader) {
@@ -137,13 +134,10 @@ class WeekTypeAdapter extends TypeAdapter<WeekType> {
     switch (obj) {
       case WeekType.every:
         writer.writeByte(0);
-        break;
       case WeekType.week1:
         writer.writeByte(1);
-        break;
       case WeekType.week2:
         writer.writeByte(2);
-        break;
     }
   }
 

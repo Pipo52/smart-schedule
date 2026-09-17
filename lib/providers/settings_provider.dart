@@ -68,6 +68,14 @@ class SettingsProvider extends ChangeNotifier {
     await _persist();
   }
 
+  Future<void> setGeminiApiKey(String? key) async {
+    final trimmed = key?.trim();
+    _settings.geminiApiKey = (trimmed == null || trimmed.isEmpty)
+        ? null
+        : trimmed;
+    await _persist();
+  }
+
   /// Wipes all data and resets settings to defaults.
   Future<void> resetAllData() async {
     await HiveService.wipeAllData();

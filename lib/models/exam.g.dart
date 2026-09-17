@@ -8,7 +8,7 @@ part of 'exam.dart';
 
 class ExamAdapter extends TypeAdapter<Exam> {
   @override
-  final int typeId = 5;
+  final typeId = 5;
 
   @override
   Exam read(BinaryReader reader) {
@@ -60,7 +60,7 @@ class ExamAdapter extends TypeAdapter<Exam> {
 
 class ExamTypeAdapter extends TypeAdapter<ExamType> {
   @override
-  final int typeId = 6;
+  final typeId = 6;
 
   @override
   ExamType read(BinaryReader reader) {
@@ -81,13 +81,10 @@ class ExamTypeAdapter extends TypeAdapter<ExamType> {
     switch (obj) {
       case ExamType.midterm:
         writer.writeByte(0);
-        break;
       case ExamType.finalExam:
         writer.writeByte(1);
-        break;
       case ExamType.retake:
         writer.writeByte(2);
-        break;
     }
   }
 

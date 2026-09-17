@@ -742,6 +742,114 @@ abstract class AppLocalizations {
   /// **'Русский'**
   String get languageRussian;
 
+  /// No description provided for @settingsAiSection.
+  ///
+  /// In en, this message translates to:
+  /// **'AI features'**
+  String get settingsAiSection;
+
+  /// No description provided for @settingsGeminiApiKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Gemini API key'**
+  String get settingsGeminiApiKey;
+
+  /// No description provided for @settingsGeminiApiKeyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste your API key'**
+  String get settingsGeminiApiKeyHint;
+
+  /// No description provided for @settingsGeminiApiKeyHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Get your free API key at Google AI Studio'**
+  String get settingsGeminiApiKeyHelp;
+
+  /// No description provided for @settingsGeminiApiKeySaved.
+  ///
+  /// In en, this message translates to:
+  /// **'API key saved'**
+  String get settingsGeminiApiKeySaved;
+
+  /// No description provided for @addLessonAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add lesson'**
+  String get addLessonAction;
+
+  /// No description provided for @manualEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual entry'**
+  String get manualEntry;
+
+  /// No description provided for @smartImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart Import'**
+  String get smartImport;
+
+  /// No description provided for @smartImportMissingKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a Gemini API key in Settings first.'**
+  String get smartImportMissingKey;
+
+  /// No description provided for @smartImportLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'AI is reading your schedule…'**
+  String get smartImportLoading;
+
+  /// No description provided for @smartImportEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No lessons were found in this file.'**
+  String get smartImportEmpty;
+
+  /// No description provided for @smartImportError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not parse the schedule: {error}'**
+  String smartImportError(String error);
+
+  /// No description provided for @smartImportFileTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'This file is too large. Please use a file under 15 MB.'**
+  String get smartImportFileTooLarge;
+
+  /// No description provided for @smartImportMalformed.
+  ///
+  /// In en, this message translates to:
+  /// **'The AI returned data we could not read. Try a clearer photo or PDF.'**
+  String get smartImportMalformed;
+
+  /// No description provided for @smartImportNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Network error. Check your connection and API key.'**
+  String get smartImportNetwork;
+
+  /// No description provided for @smartImportPreviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review imported lessons'**
+  String get smartImportPreviewTitle;
+
+  /// No description provided for @smartImportSaveAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Save all'**
+  String get smartImportSaveAll;
+
+  /// No description provided for @smartImportSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} lessons added to your schedule'**
+  String smartImportSaved(int count);
+
   /// No description provided for @confirmDeleteTitle.
   ///
   /// In en, this message translates to:
