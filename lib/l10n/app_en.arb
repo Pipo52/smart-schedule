@@ -250,5 +250,21 @@
     "placeholders": {"subject": {"type": "String"}}
   },
   "smartInputLessonNotFound": "Could not find a matching lesson to cancel",
-  "nothingChanged": "Nothing changed"
+  "nothingChanged": "Nothing changed",
+  "authSignInTitle": "Sign in",
+  "authSignUpTitle": "Create account",
+  "authEmailField": "Email",
+  "authPasswordField": "Password",
+  "authSignInButton": "Sign in",
+  "authSignUpButton": "Sign up",
+  "authSwitchToSignUp": "Don't have an account? Sign up",
+  "authSwitchToSignIn": "Already have an account? Sign in",
+  "authEmailRequired": "Enter your email",
+  "authPasswordRequired": "Enter your password",
+  "settingsAccountSection": "Account",
+  "settingsSignedInAs": "Signed in as {email}",
+  "@settingsSignedInAs": {
+    "placeholders": {"email": {"type": "String"}}
+  },
+  "settingsSignOut": "Sign out"
 }

@@ -1,8 +1,11 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+import 'firebase_options.dart';
 import 'l10n/generated/app_localizations.dart';
+import 'providers/auth_provider.dart';
 import 'providers/exam_provider.dart';
 import 'providers/profile_provider.dart';
 import 'providers/schedule_exception_provider.dart';
@@ -10,12 +13,14 @@ import 'providers/schedule_provider.dart';
 import 'providers/semester_period_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/task_provider.dart';
+import 'screens/auth/auth_screen.dart';
 import 'screens/root_shell.dart';
 import 'services/hive_service.dart';
 import 'services/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await HiveService.init();
   await HiveService.ensureDefaultProfile();
   await NotificationService.instance.init();
@@ -30,6 +35,7 @@ class SmartScheduleApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProxyProvider<SettingsProvider, ProfileProvider>(
           create: (context) =>
@@ -180,7 +186,19 @@ class _AppViewState extends State<_AppView> with WidgetsBindingObserver {
         scaffoldBackgroundColor: const Color(0xFF121212),
         useMaterial3: true,
       ),
-      home: const RootShell(),
+      home: const AuthWrapper(),
     );
+  }
+}
+
+/// Shows [AuthScreen] when signed out, or the main app ([RootShell]) once a
+/// Firebase user is authenticated.
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final user = context.watch<AuthProvider>().currentUser;
+    return user == null ? const AuthScreen() : const RootShell();
   }
 }

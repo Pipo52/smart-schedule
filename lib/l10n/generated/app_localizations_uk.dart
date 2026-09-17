@@ -595,4 +595,45 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get nothingChanged => 'Нічого не змінено';
+
+  @override
+  String get authSignInTitle => 'Вхід';
+
+  @override
+  String get authSignUpTitle => 'Реєстрація';
+
+  @override
+  String get authEmailField => 'Email';
+
+  @override
+  String get authPasswordField => 'Пароль';
+
+  @override
+  String get authSignInButton => 'Увійти';
+
+  @override
+  String get authSignUpButton => 'Зареєструватися';
+
+  @override
+  String get authSwitchToSignUp => 'Немає акаунта? Зареєструватися';
+
+  @override
+  String get authSwitchToSignIn => 'Вже є акаунт? Увійти';
+
+  @override
+  String get authEmailRequired => 'Введіть email';
+
+  @override
+  String get authPasswordRequired => 'Введіть пароль';
+
+  @override
+  String get settingsAccountSection => 'Акаунт';
+
+  @override
+  String settingsSignedInAs(String email) {
+    return 'Ви увійшли як $email';
+  }
+
+  @override
+  String get settingsSignOut => 'Вийти з акаунта';
 }

@@ -194,5 +194,18 @@
   "smartInputPeriodCreated": "Період додано: {name}",
   "smartInputLessonCancelled": "Пару скасовано: {subject}",
   "smartInputLessonNotFound": "Не вдалося знайти відповідну пару для скасування",
-  "nothingChanged": "Нічого не змінено"
+  "nothingChanged": "Нічого не змінено",
+  "authSignInTitle": "Вхід",
+  "authSignUpTitle": "Реєстрація",
+  "authEmailField": "Email",
+  "authPasswordField": "Пароль",
+  "authSignInButton": "Увійти",
+  "authSignUpButton": "Зареєструватися",
+  "authSwitchToSignUp": "Немає акаунта? Зареєструватися",
+  "authSwitchToSignIn": "Вже є акаунт? Увійти",
+  "authEmailRequired": "Введіть email",
+  "authPasswordRequired": "Введіть пароль",
+  "settingsAccountSection": "Акаунт",
+  "settingsSignedInAs": "Ви увійшли як {email}",
+  "settingsSignOut": "Вийти з акаунта"
 }

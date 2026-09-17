@@ -1161,6 +1161,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Nothing changed'**
   String get nothingChanged;
+
+  /// No description provided for @authSignInTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get authSignInTitle;
+
+  /// No description provided for @authSignUpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get authSignUpTitle;
+
+  /// No description provided for @authEmailField.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get authEmailField;
+
+  /// No description provided for @authPasswordField.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get authPasswordField;
+
+  /// No description provided for @authSignInButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get authSignInButton;
+
+  /// No description provided for @authSignUpButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up'**
+  String get authSignUpButton;
+
+  /// No description provided for @authSwitchToSignUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have an account? Sign up'**
+  String get authSwitchToSignUp;
+
+  /// No description provided for @authSwitchToSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account? Sign in'**
+  String get authSwitchToSignIn;
+
+  /// No description provided for @authEmailRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email'**
+  String get authEmailRequired;
+
+  /// No description provided for @authPasswordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password'**
+  String get authPasswordRequired;
+
+  /// No description provided for @settingsAccountSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get settingsAccountSection;
+
+  /// No description provided for @settingsSignedInAs.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in as {email}'**
+  String settingsSignedInAs(String email);
+
+  /// No description provided for @settingsSignOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get settingsSignOut;
 }
 
 class _AppLocalizationsDelegate

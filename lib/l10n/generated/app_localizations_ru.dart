@@ -595,4 +595,45 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get nothingChanged => 'Ничего не изменено';
+
+  @override
+  String get authSignInTitle => 'Вход';
+
+  @override
+  String get authSignUpTitle => 'Регистрация';
+
+  @override
+  String get authEmailField => 'Email';
+
+  @override
+  String get authPasswordField => 'Пароль';
+
+  @override
+  String get authSignInButton => 'Войти';
+
+  @override
+  String get authSignUpButton => 'Зарегистрироваться';
+
+  @override
+  String get authSwitchToSignUp => 'Нет аккаунта? Зарегистрироваться';
+
+  @override
+  String get authSwitchToSignIn => 'Уже есть аккаунт? Войти';
+
+  @override
+  String get authEmailRequired => 'Введите email';
+
+  @override
+  String get authPasswordRequired => 'Введите пароль';
+
+  @override
+  String get settingsAccountSection => 'Аккаунт';
+
+  @override
+  String settingsSignedInAs(String email) {
+    return 'Вы вошли как $email';
+  }
+
+  @override
+  String get settingsSignOut => 'Выйти из аккаунта';
 }

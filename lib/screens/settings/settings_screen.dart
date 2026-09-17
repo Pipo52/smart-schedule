@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/app_settings.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/exam_provider.dart';
 import '../../providers/schedule_provider.dart';
 import '../../providers/settings_provider.dart';
@@ -115,11 +116,31 @@ class SettingsScreen extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final settings = context.watch<SettingsProvider>();
     final current = settings.settings;
+    final auth = context.watch<AuthProvider>();
+    final userEmail = auth.currentUser?.email;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsScreenTitle)),
       body: ListView(
         children: [
+          _SectionLabel(l10n.settingsAccountSection),
+          if (userEmail != null)
+            ListTile(
+              leading: const Icon(Icons.account_circle_outlined),
+              title: Text(l10n.settingsSignedInAs(userEmail)),
+            ),
+          ListTile(
+            leading: Icon(
+              Icons.logout,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            title: Text(
+              l10n.settingsSignOut,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+            onTap: () => context.read<AuthProvider>().signOut(),
+          ),
+          const Divider(),
           _SectionLabel(l10n.settingsCurrentWeekSection),
           ListTile(
             title: Text(l10n.settingsManualOverride),

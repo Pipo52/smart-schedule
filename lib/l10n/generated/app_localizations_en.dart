@@ -592,4 +592,45 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get nothingChanged => 'Nothing changed';
+
+  @override
+  String get authSignInTitle => 'Sign in';
+
+  @override
+  String get authSignUpTitle => 'Create account';
+
+  @override
+  String get authEmailField => 'Email';
+
+  @override
+  String get authPasswordField => 'Password';
+
+  @override
+  String get authSignInButton => 'Sign in';
+
+  @override
+  String get authSignUpButton => 'Sign up';
+
+  @override
+  String get authSwitchToSignUp => 'Don\'t have an account? Sign up';
+
+  @override
+  String get authSwitchToSignIn => 'Already have an account? Sign in';
+
+  @override
+  String get authEmailRequired => 'Enter your email';
+
+  @override
+  String get authPasswordRequired => 'Enter your password';
+
+  @override
+  String get settingsAccountSection => 'Account';
+
+  @override
+  String settingsSignedInAs(String email) {
+    return 'Signed in as $email';
+  }
+
+  @override
+  String get settingsSignOut => 'Sign out';
 }

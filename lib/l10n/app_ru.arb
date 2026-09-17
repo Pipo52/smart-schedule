@@ -194,5 +194,18 @@
   "smartInputPeriodCreated": "Период добавлен: {name}",
   "smartInputLessonCancelled": "Пара отменена: {subject}",
   "smartInputLessonNotFound": "Не удалось найти подходящую пару для отмены",
-  "nothingChanged": "Ничего не изменено"
+  "nothingChanged": "Ничего не изменено",
+  "authSignInTitle": "Вход",
+  "authSignUpTitle": "Регистрация",
+  "authEmailField": "Email",
+  "authPasswordField": "Пароль",
+  "authSignInButton": "Войти",
+  "authSignUpButton": "Зарегистрироваться",
+  "authSwitchToSignUp": "Нет аккаунта? Зарегистрироваться",
+  "authSwitchToSignIn": "Уже есть аккаунт? Войти",
+  "authEmailRequired": "Введите email",
+  "authPasswordRequired": "Введите пароль",
+  "settingsAccountSection": "Аккаунт",
+  "settingsSignedInAs": "Вы вошли как {email}",
+  "settingsSignOut": "Выйти из аккаунта"
 }
