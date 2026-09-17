@@ -636,4 +636,10 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get settingsSignOut => 'Вийти з акаунта';
+
+  @override
+  String get authOrDivider => 'АБО';
+
+  @override
+  String get authSignInWithGoogle => 'Увійти через Google';
 }

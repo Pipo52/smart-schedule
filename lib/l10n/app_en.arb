@@ -266,5 +266,7 @@
   "@settingsSignedInAs": {
     "placeholders": {"email": {"type": "String"}}
   },
-  "settingsSignOut": "Sign out"
+  "settingsSignOut": "Sign out",
+  "authOrDivider": "OR",
+  "authSignInWithGoogle": "Sign in with Google"
 }

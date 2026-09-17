@@ -633,4 +633,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsSignOut => 'Sign out';
+
+  @override
+  String get authOrDivider => 'OR';
+
+  @override
+  String get authSignInWithGoogle => 'Sign in with Google';
 }

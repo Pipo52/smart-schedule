@@ -207,5 +207,7 @@
   "authPasswordRequired": "Введіть пароль",
   "settingsAccountSection": "Акаунт",
   "settingsSignedInAs": "Ви увійшли як {email}",
-  "settingsSignOut": "Вийти з акаунта"
+  "settingsSignOut": "Вийти з акаунта",
+  "authOrDivider": "АБО",
+  "authSignInWithGoogle": "Увійти через Google"
 }
