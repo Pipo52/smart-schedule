@@ -23,6 +23,12 @@ import '../schedule/import_preview_screen.dart';
 import '../schedule/lesson_form_screen.dart';
 import '../schedule/occurrence_form_screen.dart';
 
+typedef _LessonOccurrence = ({
+  Lesson lesson,
+  ScheduleException? cancellation,
+  ScheduleException? modification,
+});
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.onOpenDrawer});
 
@@ -35,6 +41,13 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late int _selectedWeekday;
   int? _previewWeek;
+  List<_LessonOccurrence> _effectiveLessons = const [];
+  DateTime _targetDateCached = DateTime.now();
+  int? _cachedWeekday;
+  int? _cachedPreviewWeek;
+  int? _cachedActualWeek;
+  List<Lesson>? _cachedSourceLessons;
+  List<ScheduleException>? _cachedExceptions;
 
   @override
   void initState() {
@@ -54,6 +67,78 @@ class _HomeScreenState extends State<HomeScreen> {
       dayDiff += 7;
     }
     return today.add(Duration(days: dayDiff));
+  }
+
+  List<_LessonOccurrence> _computeEffectiveLessons({
+    required List<Lesson> lessons,
+    required ScheduleExceptionProvider exceptionProvider,
+    required DateTime targetDate,
+  }) {
+    final effectiveLessons = <_LessonOccurrence>[];
+    final dayExceptions = exceptionProvider.exceptionsForDate(targetDate);
+    for (final lesson in lessons) {
+      ScheduleException? cancellation;
+      for (final exception in dayExceptions) {
+        if (exception.lessonId == lesson.id &&
+            exception.type == ExceptionType.cancelled) {
+          cancellation = exception;
+          break;
+        }
+      }
+      effectiveLessons.add((
+        lesson: lesson,
+        cancellation: cancellation,
+        modification: exceptionProvider.getModification(lesson.id, targetDate),
+      ));
+    }
+    return effectiveLessons;
+  }
+
+  void _refreshEffectiveLessons() {
+    final settings = context.read<SettingsProvider>();
+    final schedule = context.read<ScheduleProvider>();
+    final exceptionProvider = context.read<ScheduleExceptionProvider>();
+    final actualWeek = settings.currentWeek;
+    final previewWeek = _previewWeek ?? actualWeek;
+    final lessons = schedule.lessonsForDay(
+      weekday: _selectedWeekday,
+      week: previewWeek,
+    );
+    final exceptions = exceptionProvider.exceptions;
+
+    if (_cachedWeekday == _selectedWeekday &&
+        _cachedPreviewWeek == previewWeek &&
+        _cachedActualWeek == actualWeek &&
+        identical(_cachedSourceLessons, lessons) &&
+        identical(_cachedExceptions, exceptions)) {
+      return;
+    }
+
+    _cachedWeekday = _selectedWeekday;
+    _cachedPreviewWeek = previewWeek;
+    _cachedActualWeek = actualWeek;
+    _cachedSourceLessons = lessons;
+    _cachedExceptions = exceptions;
+    _targetDateCached = _targetDate(_selectedWeekday, previewWeek, actualWeek);
+    _effectiveLessons = _computeEffectiveLessons(
+      lessons: lessons,
+      exceptionProvider: exceptionProvider,
+      targetDate: _targetDateCached,
+    );
+  }
+
+  void _selectWeek(int week) {
+    setState(() {
+      _previewWeek = week;
+      _refreshEffectiveLessons();
+    });
+  }
+
+  void _selectWeekday(int weekday) {
+    setState(() {
+      _selectedWeekday = weekday;
+      _refreshEffectiveLessons();
+    });
   }
 
   void _showLessonActions(
@@ -128,6 +213,34 @@ class _HomeScreenState extends State<HomeScreen> {
                   MaterialPageRoute(
                     builder: (_) => LessonFormScreen(lesson: lesson),
                   ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showRestoreCancelledLesson(
+    BuildContext context,
+    ScheduleException exception,
+  ) {
+    final l10n = AppLocalizations.of(context);
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.restore),
+              title: Text(l10n.restoreThisClass),
+              onTap: () async {
+                Navigator.of(sheetContext).pop();
+                await context.read<ScheduleExceptionProvider>().deleteException(
+                  exception.id,
                 );
               },
             ),
@@ -252,9 +365,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final settings = context.watch<SettingsProvider>();
-    final schedule = context.watch<ScheduleProvider>();
+    context.watch<ScheduleProvider>();
     final tasks = context.watch<TaskProvider>();
-    final exceptionProvider = context.watch<ScheduleExceptionProvider>();
+    context.watch<ScheduleExceptionProvider>();
     final localeCode = Localizations.localeOf(context).toString();
 
     final actualWeek = settings.currentWeek;
@@ -265,26 +378,11 @@ class _HomeScreenState extends State<HomeScreen> {
       localeCode,
     );
 
-    final lessons = schedule.lessonsForDay(
-      weekday: _selectedWeekday,
-      week: previewWeek,
-    );
     final dueTasks = tasks.dueTodayOrOverdue;
-
-    final targetDate = _targetDate(_selectedWeekday, previewWeek, actualWeek);
-    final effectiveLessons =
-        <
-          ({Lesson lesson, bool isCancelled, ScheduleException? modification})
-        >[];
-    for (final lesson in lessons) {
-      final cancelled = exceptionProvider.isCancelled(lesson.id, targetDate);
-      final mod = exceptionProvider.getModification(lesson.id, targetDate);
-      effectiveLessons.add((
-        lesson: lesson,
-        isCancelled: cancelled,
-        modification: mod,
-      ));
-    }
+    _refreshEffectiveLessons();
+    final targetDate = _targetDateCached;
+    final effectiveLessons = _effectiveLessons;
+    final lessons = _cachedSourceLessons ?? const <Lesson>[];
 
     return Scaffold(
       appBar: AppBar(
@@ -324,7 +422,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: WeekSwitcher(
                     selectedWeek: previewWeek,
                     actualWeek: actualWeek,
-                    onChanged: (week) => setState(() => _previewWeek = week),
+                    onChanged: _selectWeek,
                   ),
                 ),
                 if (previewWeek != actualWeek)
@@ -343,8 +441,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 DaySelector(
                   selectedWeekday: _selectedWeekday,
                   localeCode: localeCode,
-                  onChanged: (weekday) =>
-                      setState(() => _selectedWeekday = weekday),
+                  onChanged: _selectWeekday,
                 ),
                 const SizedBox(height: 8),
               ],
@@ -368,8 +465,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     entry: entry,
                     cancelledLabel: l10n.cancelledBadge,
                     modifiedLabel: l10n.modifiedBadge,
-                    onOpenActions: () =>
-                        _showLessonActions(context, entry.lesson, targetDate),
+                    onOpenActions: () {
+                      final cancellation = entry.cancellation;
+                      if (cancellation != null) {
+                        _showRestoreCancelledLesson(context, cancellation);
+                      } else {
+                        _showLessonActions(context, entry.lesson, targetDate);
+                      }
+                    },
                   );
                 }, childCount: effectiveLessons.length),
               ),
@@ -426,8 +529,7 @@ class _LessonOccurrenceTile extends StatelessWidget {
     required this.onOpenActions,
   });
 
-  final ({Lesson lesson, bool isCancelled, ScheduleException? modification})
-  entry;
+  final _LessonOccurrence entry;
   final String cancelledLabel;
   final String modifiedLabel;
   final VoidCallback onOpenActions;
@@ -444,15 +546,13 @@ class _LessonOccurrenceTile extends StatelessWidget {
           )
         : entry.lesson;
 
+    final isCancelled = entry.cancellation != null;
     return Opacity(
-      opacity: entry.isCancelled ? 0.4 : 1.0,
+      opacity: isCancelled ? 0.4 : 1.0,
       child: Stack(
         children: [
-          LessonCard(
-            lesson: lesson,
-            onTap: entry.isCancelled ? null : onOpenActions,
-          ),
-          if (entry.isCancelled)
+          LessonCard(lesson: lesson, onTap: onOpenActions),
+          if (isCancelled)
             Positioned(
               top: 8,
               right: 12,
@@ -463,7 +563,7 @@ class _LessonOccurrenceTile extends StatelessWidget {
                 visualDensity: VisualDensity.compact,
               ),
             ),
-          if (entry.modification != null && !entry.isCancelled)
+          if (entry.modification != null && !isCancelled)
             Positioned(
               top: 8,
               right: 12,

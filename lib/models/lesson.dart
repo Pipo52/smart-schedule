@@ -95,10 +95,14 @@ class Lesson extends HiveObject {
   int get endMinutes => _parseMinutesSinceMidnight(endTime);
 
   static int _parseMinutesSinceMidnight(String hhmm) {
-    final parts = hhmm.split(':');
-    final hours = int.parse(parts[0]);
-    final minutes = int.parse(parts[1]);
-    return hours * 60 + minutes;
+    try {
+      final parts = hhmm.split(':');
+      final hours = int.parse(parts[0]);
+      final minutes = int.parse(parts[1]);
+      return hours * 60 + minutes;
+    } catch (_) {
+      return 0;
+    }
   }
 
   Lesson copyWith({

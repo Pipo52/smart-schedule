@@ -5,7 +5,10 @@ import '../../l10n/generated/app_localizations.dart';
 import '../../models/app_settings.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/exam_provider.dart';
+import '../../providers/profile_provider.dart';
+import '../../providers/schedule_exception_provider.dart';
 import '../../providers/schedule_provider.dart';
+import '../../providers/semester_period_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/task_provider.dart';
 import '../../services/backup_service.dart';
@@ -37,9 +40,12 @@ class SettingsScreen extends StatelessWidget {
 
     await context.read<SettingsProvider>().resetAllData();
     if (!context.mounted) return;
+    context.read<ProfileProvider>().reloadFromBox();
     context.read<ScheduleProvider>().reloadFromBox();
     context.read<TaskProvider>().reloadFromBox();
     context.read<ExamProvider>().reloadFromBox();
+    context.read<SemesterPeriodProvider>().reloadFromBox();
+    context.read<ScheduleExceptionProvider>().reloadFromBox();
   }
 
   Future<void> _pickReferenceDate(BuildContext context) async {
@@ -96,10 +102,14 @@ class SettingsScreen extends StatelessWidget {
       final imported = await BackupService.pickAndImport();
       if (!context.mounted) return;
       if (imported) {
+        final settings = context.read<SettingsProvider>()..reloadFromBox();
+        context.read<ProfileProvider>().reloadFromBox();
+        context.read<ProfileProvider>().updateSettings(settings);
         context.read<ScheduleProvider>().reloadFromBox();
         context.read<TaskProvider>().reloadFromBox();
         context.read<ExamProvider>().reloadFromBox();
-        context.read<SettingsProvider>().reloadFromBox();
+        context.read<SemesterPeriodProvider>().reloadFromBox();
+        context.read<ScheduleExceptionProvider>().reloadFromBox();
         messenger.showSnackBar(
           SnackBar(content: Text(l10n.settingsImportSuccess)),
         );

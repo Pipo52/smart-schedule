@@ -170,9 +170,8 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
             TextFormField(
               controller: _subjectController,
               decoration: InputDecoration(labelText: l10n.examSubjectField),
-              validator: (v) => (v == null || v.trim().isEmpty)
-                  ? l10n.examSubjectField
-                  : null,
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? l10n.fieldRequired : null,
             ),
             const SizedBox(height: 16),
             OutlinedButton(

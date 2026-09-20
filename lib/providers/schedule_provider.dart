@@ -103,8 +103,28 @@ class ScheduleProvider extends ChangeNotifier {
     await _scheduleFor(lesson);
   }
 
+  Future<void> saveLessons(List<Lesson> lessons) async {
+    if (lessons.isEmpty) return;
+    final entries = <String, Lesson>{};
+    for (final lesson in lessons) {
+      lesson.profileId = _profileId;
+      entries[lesson.id] = lesson;
+    }
+    await _box.putAll(entries);
+    _loadLessons();
+    notifyListeners();
+    for (final lesson in lessons) {
+      await _scheduleFor(lesson);
+    }
+  }
+
   Future<void> deleteLesson(String id) async {
     await NotificationService.instance.cancelLessonNotifications(id);
+    final exceptionIds = HiveService.exceptionsBox.values
+        .where((exception) => exception.lessonId == id)
+        .map((exception) => exception.id)
+        .toList();
+    await HiveService.exceptionsBox.deleteAll(exceptionIds);
     await _box.delete(id);
     _loadLessons();
     notifyListeners();

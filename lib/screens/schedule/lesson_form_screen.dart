@@ -165,9 +165,8 @@ class _LessonFormScreenState extends State<LessonFormScreen> {
             TextFormField(
               controller: _subjectController,
               decoration: InputDecoration(labelText: l10n.lessonSubjectField),
-              validator: (v) => (v == null || v.trim().isEmpty)
-                  ? l10n.lessonSubjectField
-                  : null,
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? l10n.fieldRequired : null,
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<LessonType>(

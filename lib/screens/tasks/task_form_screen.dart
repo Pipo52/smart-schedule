@@ -172,7 +172,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
               controller: _titleController,
               decoration: InputDecoration(labelText: l10n.taskTitleField),
               validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? l10n.taskTitleField : null,
+                  (v == null || v.trim().isEmpty) ? l10n.fieldRequired : null,
             ),
             const SizedBox(height: 16),
             TextFormField(

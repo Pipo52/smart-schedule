@@ -7,14 +7,18 @@ import 'package:share_plus/share_plus.dart';
 import '../models/app_settings.dart';
 import '../models/exam.dart';
 import '../models/lesson.dart';
+import '../models/schedule_exception.dart';
+import '../models/schedule_profile.dart';
+import '../models/semester_period.dart';
 import '../models/task.dart';
 import 'backup_file_io.dart'
     if (dart.library.js_interop) 'backup_file_web.dart';
 import 'hive_service.dart';
 
 /// Exports/imports the entire local database (lessons, tasks, exams,
-/// settings) as a single JSON file. This is the only way to move data
-/// between devices, since the app has no cloud backend.
+/// profiles, periods, exceptions, settings) as a single JSON file. This is
+/// the only way to move data between devices, since the app has no cloud
+/// backend.
 class BackupService {
   BackupService._();
 
@@ -31,6 +35,11 @@ class BackupService {
       'lessons': HiveService.lessonsBox.values.map(_lessonToJson).toList(),
       'tasks': HiveService.tasksBox.values.map(_taskToJson).toList(),
       'exams': HiveService.examsBox.values.map(_examToJson).toList(),
+      'profiles': HiveService.profilesBox.values.map(_profileToJson).toList(),
+      'periods': HiveService.periodsBox.values.map(_periodToJson).toList(),
+      'exceptions': HiveService.exceptionsBox.values
+          .map(_exceptionToJson)
+          .toList(),
       'settings': _settingsToJson(
         HiveService.settingsBox.get(HiveService.settingsKey),
       ),
@@ -87,27 +96,67 @@ class BackupService {
   }
 
   static Future<void> importFromJson(Map<String, dynamic> data) async {
+    final lessons = <Lesson>[];
+    for (final raw in (data['lessons'] as List? ?? const [])) {
+      lessons.add(_lessonFromJson(Map<String, dynamic>.from(raw as Map)));
+    }
+    final tasks = <Task>[];
+    for (final raw in (data['tasks'] as List? ?? const [])) {
+      tasks.add(_taskFromJson(Map<String, dynamic>.from(raw as Map)));
+    }
+    final exams = <Exam>[];
+    for (final raw in (data['exams'] as List? ?? const [])) {
+      exams.add(_examFromJson(Map<String, dynamic>.from(raw as Map)));
+    }
+    final profiles = <ScheduleProfile>[];
+    for (final raw in (data['profiles'] as List? ?? const [])) {
+      profiles.add(_profileFromJson(Map<String, dynamic>.from(raw as Map)));
+    }
+    final periods = <SemesterPeriod>[];
+    for (final raw in (data['periods'] as List? ?? const [])) {
+      periods.add(_periodFromJson(Map<String, dynamic>.from(raw as Map)));
+    }
+    final exceptions = <ScheduleException>[];
+    for (final raw in (data['exceptions'] as List? ?? const [])) {
+      exceptions.add(_exceptionFromJson(Map<String, dynamic>.from(raw as Map)));
+    }
+    final settingsRaw = data['settings'] as Map?;
+    final importedSettings = settingsRaw == null
+        ? null
+        : _settingsFromJson(Map<String, dynamic>.from(settingsRaw));
+
     await HiveService.lessonsBox.clear();
     await HiveService.tasksBox.clear();
     await HiveService.examsBox.clear();
+    await HiveService.profilesBox.clear();
+    await HiveService.periodsBox.clear();
+    await HiveService.exceptionsBox.clear();
 
-    for (final raw in (data['lessons'] as List? ?? const [])) {
-      final lesson = _lessonFromJson(raw as Map<String, dynamic>);
+    for (final lesson in lessons) {
       await HiveService.lessonsBox.put(lesson.id, lesson);
     }
-    for (final raw in (data['tasks'] as List? ?? const [])) {
-      final task = _taskFromJson(raw as Map<String, dynamic>);
+    for (final task in tasks) {
       await HiveService.tasksBox.put(task.id, task);
     }
-    for (final raw in (data['exams'] as List? ?? const [])) {
-      final exam = _examFromJson(raw as Map<String, dynamic>);
+    for (final exam in exams) {
       await HiveService.examsBox.put(exam.id, exam);
     }
-    final settingsRaw = data['settings'] as Map<String, dynamic>?;
-    if (settingsRaw != null) {
-      final imported = _settingsFromJson(settingsRaw);
-      await HiveService.settingsBox.put(HiveService.settingsKey, imported);
+    for (final profile in profiles) {
+      await HiveService.profilesBox.put(profile.id, profile);
     }
+    for (final period in periods) {
+      await HiveService.periodsBox.put(period.id, period);
+    }
+    for (final exception in exceptions) {
+      await HiveService.exceptionsBox.put(exception.id, exception);
+    }
+    if (importedSettings != null) {
+      await HiveService.settingsBox.put(
+        HiveService.settingsKey,
+        importedSettings,
+      );
+    }
+    await HiveService.ensureDefaultProfile();
   }
 
   // ---------------------------------------------------------------------
@@ -217,4 +266,74 @@ class BackupService {
     appLocale: j['appLocale'] as String?,
     schemaVersion: j['schemaVersion'] as int? ?? 2,
   );
+
+  static Map<String, dynamic> _profileToJson(ScheduleProfile p) =>
+      <String, dynamic>{
+        'id': p.id,
+        'name': p.name,
+        'createdAt': p.createdAt.toIso8601String(),
+        'isDefault': p.isDefault,
+      };
+
+  static ScheduleProfile _profileFromJson(Map<String, dynamic> j) =>
+      ScheduleProfile(
+        id: j['id'] as String,
+        name: j['name'] as String,
+        createdAt: DateTime.parse(j['createdAt'] as String),
+        isDefault: j['isDefault'] as bool? ?? false,
+      );
+
+  static Map<String, dynamic> _periodToJson(SemesterPeriod p) =>
+      <String, dynamic>{
+        'id': p.id,
+        'name': p.name,
+        'startDate': p.startDate.toIso8601String(),
+        'endDate': p.endDate.toIso8601String(),
+        'type': p.type.name,
+        'profileId': p.profileId,
+        'colorValue': p.colorValue,
+      };
+
+  static SemesterPeriod _periodFromJson(Map<String, dynamic> j) =>
+      SemesterPeriod(
+        id: j['id'] as String,
+        name: j['name'] as String,
+        startDate: DateTime.parse(j['startDate'] as String),
+        endDate: DateTime.parse(j['endDate'] as String),
+        type: SemesterPeriodType.values.byName(
+          (j['type'] as String?) ?? 'other',
+        ),
+        profileId: j['profileId'] as String? ?? 'default',
+        colorValue: j['colorValue'] as int?,
+      );
+
+  static Map<String, dynamic> _exceptionToJson(ScheduleException e) =>
+      <String, dynamic>{
+        'id': e.id,
+        'lessonId': e.lessonId,
+        'date': e.date.toIso8601String(),
+        'type': e.type.name,
+        'profileId': e.profileId,
+        'newStartTime': e.newStartTime,
+        'newEndTime': e.newEndTime,
+        'newRoom': e.newRoom,
+        'newLecturer': e.newLecturer,
+        'newNotes': e.newNotes,
+      };
+
+  static ScheduleException _exceptionFromJson(Map<String, dynamic> j) =>
+      ScheduleException(
+        id: j['id'] as String,
+        lessonId: j['lessonId'] as String,
+        date: DateTime.parse(j['date'] as String),
+        type: ExceptionType.values.byName(
+          (j['type'] as String?) ?? 'cancelled',
+        ),
+        profileId: j['profileId'] as String? ?? 'default',
+        newStartTime: j['newStartTime'] as String?,
+        newEndTime: j['newEndTime'] as String?,
+        newRoom: j['newRoom'] as String?,
+        newLecturer: j['newLecturer'] as String?,
+        newNotes: j['newNotes'] as String?,
+      );
 }

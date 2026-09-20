@@ -11,24 +11,32 @@ import 'settings_provider.dart';
 class ProfileProvider extends ChangeNotifier {
   ProfileProvider({required SettingsProvider settings})
     : _settings = settings,
-      _activeProfileId = _resolveInitialProfileId(settings);
+      _activeProfileId = _resolveInitialProfileId(settings) {
+    _load();
+  }
 
   static const Uuid _uuid = Uuid();
 
   final SettingsProvider _settings;
   final Box<ScheduleProfile> _box = HiveService.profilesBox;
-  List<ScheduleProfile> _profiles = <ScheduleProfile>[];
+  List<ScheduleProfile> _cachedProfiles = [];
   String _activeProfileId;
 
-  List<ScheduleProfile> get profiles {
-    _profiles = _box.values.toList()
-      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
-    return List.unmodifiable(_profiles);
-  }
+  List<ScheduleProfile> get profiles => _cachedProfiles;
 
   String get activeProfileId => _activeProfileId;
 
   ScheduleProfile? get activeProfile => _box.get(_activeProfileId);
+
+  void _load() {
+    _cachedProfiles = _box.values.toList()
+      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+  }
+
+  void reloadFromBox() {
+    _load();
+    notifyListeners();
+  }
 
   void updateSettings(SettingsProvider settings) {
     if (_box.containsKey(_activeProfileId)) return;
@@ -86,6 +94,7 @@ class ProfileProvider extends ChangeNotifier {
       isDefault: false,
     );
     await _box.put(profile.id, profile);
+    _load();
     notifyListeners();
     return profile;
   }
@@ -106,6 +115,7 @@ class ProfileProvider extends ChangeNotifier {
 
     profile.name = trimmedName;
     await profile.save();
+    _load();
     notifyListeners();
   }
 
@@ -145,6 +155,18 @@ class ProfileProvider extends ChangeNotifier {
     await HiveService.lessonsBox.deleteAll(lessons.map((item) => item.id));
     await HiveService.tasksBox.deleteAll(tasks.map((item) => item.id));
     await HiveService.examsBox.deleteAll(exams.map((item) => item.id));
+
+    final exceptions = HiveService.exceptionsBox.values
+        .where((item) => item.profileId == id)
+        .toList();
+    final periods = HiveService.periodsBox.values
+        .where((item) => item.profileId == id)
+        .toList();
+    await HiveService.exceptionsBox.deleteAll(
+      exceptions.map((item) => item.id),
+    );
+    await HiveService.periodsBox.deleteAll(periods.map((item) => item.id));
+
     await _box.delete(id);
 
     if (profile.isDefault) {
@@ -157,6 +179,7 @@ class ProfileProvider extends ChangeNotifier {
       await _settings.settings.save();
     }
 
+    _load();
     notifyListeners();
   }
 
@@ -172,6 +195,7 @@ class ProfileProvider extends ChangeNotifier {
         await profile.save();
       }
     }
+    _load();
     notifyListeners();
   }
 }

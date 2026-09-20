@@ -49,7 +49,30 @@ class ExamsScreen extends StatelessWidget {
                       builder: (_) => ExamFormScreen(exam: exam),
                     ),
                   ),
-                  onDelete: () => examProvider.deleteExam(exam.id),
+                  onDelete: () async {
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (dialogContext) => AlertDialog(
+                        title: Text(l10n.confirmDeleteTitle),
+                        content: Text(l10n.confirmDeleteExamMessage),
+                        actions: [
+                          TextButton(
+                            onPressed: () =>
+                                Navigator.of(dialogContext).pop(false),
+                            child: Text(l10n.cancel),
+                          ),
+                          TextButton(
+                            onPressed: () =>
+                                Navigator.of(dialogContext).pop(true),
+                            child: Text(l10n.delete),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirmed == true && context.mounted) {
+                      await examProvider.deleteExam(exam.id);
+                    }
+                  },
                 );
               },
             ),

@@ -229,7 +229,7 @@ class _RootShellState extends State<RootShell> {
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 600),
-          child: IndexedStack(index: _index, children: screens),
+          child: screens[_index],
         ),
       ),
       bottomNavigationBar: NavigationBar(

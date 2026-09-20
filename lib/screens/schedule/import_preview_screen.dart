@@ -23,9 +23,7 @@ class _ImportPreviewScreenState extends State<ImportPreviewScreen> {
     setState(() => _saving = true);
     final schedule = context.read<ScheduleProvider>();
     try {
-      for (final lesson in widget.parsedLessons) {
-        await schedule.saveLesson(lesson);
-      }
+      await schedule.saveLessons(widget.parsedLessons);
       if (!mounted) return;
       Navigator.of(context).pop(widget.parsedLessons.length);
     } catch (_) {

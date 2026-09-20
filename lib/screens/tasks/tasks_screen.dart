@@ -157,7 +157,30 @@ class _TasksScreenState extends State<TasksScreen> {
                             builder: (_) => TaskFormScreen(task: task),
                           ),
                         ),
-                        onDelete: () => taskProvider.deleteTask(task.id),
+                        onDelete: () async {
+                          final confirmed = await showDialog<bool>(
+                            context: context,
+                            builder: (dialogContext) => AlertDialog(
+                              title: Text(l10n.confirmDeleteTitle),
+                              content: Text(l10n.confirmDeleteTaskMessage),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(dialogContext).pop(false),
+                                  child: Text(l10n.cancel),
+                                ),
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(dialogContext).pop(true),
+                                  child: Text(l10n.delete),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirmed == true && context.mounted) {
+                            await taskProvider.deleteTask(task.id);
+                          }
+                        },
                       ),
                     );
                 }

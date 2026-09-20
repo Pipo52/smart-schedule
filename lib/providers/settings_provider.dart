@@ -110,9 +110,12 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   void _loadGeminiApiKey() {
-    _storage.read(key: _geminiApiKeyStorageKey).then((value) {
-      _geminiApiKey = value;
-      notifyListeners();
-    });
+    _storage
+        .read(key: _geminiApiKeyStorageKey)
+        .then((value) {
+          _geminiApiKey = value;
+          notifyListeners();
+        })
+        .catchError((e) {});
   }
 }

@@ -36,6 +36,7 @@
   "close": "Close",
   "done": "Done",
   "confirm": "Confirm",
+  "fieldRequired": "Required field",
 
   "emptyLessonsTitle": "No lessons",
   "emptyLessonsSubtitle": "Enjoy your free day, or add a lesson to the schedule.",
@@ -238,6 +239,7 @@
     }
   },
   "restoreLesson": "Restore",
+  "restoreThisClass": "Restore class",
   "cancelledBadge": "Cancelled",
   "modifiedBadge": "Modified",
   "occurrenceFormTitle": "Edit this occurrence",
@@ -261,6 +263,16 @@
   "authSwitchToSignIn": "Already have an account? Sign in",
   "authEmailRequired": "Enter your email",
   "authPasswordRequired": "Enter your password",
+  "authConfirmPasswordField": "Confirm password",
+  "authPasswordsDoNotMatch": "Passwords do not match",
+  "authPasswordTooShort": "Password must be at least 6 characters",
+  "authErrorEmailAlreadyInUse": "This email is already registered",
+  "authErrorWrongPassword": "Incorrect password",
+  "authErrorUserNotFound": "User not found",
+  "authErrorWeakPassword": "Password is too weak (minimum 6 characters)",
+  "authErrorInvalidEmail": "Invalid email",
+  "authErrorTooManyRequests": "Too many attempts. Please wait",
+  "authErrorGeneric": "Something went wrong. Try again later",
   "settingsAccountSection": "Account",
   "settingsSignedInAs": "Signed in as {email}",
   "@settingsSignedInAs": {

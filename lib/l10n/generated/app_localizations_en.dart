@@ -76,6 +76,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get confirm => 'Confirm';
 
   @override
+  String get fieldRequired => 'Required field';
+
+  @override
   String get emptyLessonsTitle => 'No lessons';
 
   @override
@@ -568,6 +571,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get restoreLesson => 'Restore';
 
   @override
+  String get restoreThisClass => 'Restore class';
+
+  @override
   String get cancelledBadge => 'Cancelled';
 
   @override
@@ -622,6 +628,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authPasswordRequired => 'Enter your password';
+
+  @override
+  String get authConfirmPasswordField => 'Confirm password';
+
+  @override
+  String get authPasswordsDoNotMatch => 'Passwords do not match';
+
+  @override
+  String get authPasswordTooShort => 'Password must be at least 6 characters';
+
+  @override
+  String get authErrorEmailAlreadyInUse => 'This email is already registered';
+
+  @override
+  String get authErrorWrongPassword => 'Incorrect password';
+
+  @override
+  String get authErrorUserNotFound => 'User not found';
+
+  @override
+  String get authErrorWeakPassword =>
+      'Password is too weak (minimum 6 characters)';
+
+  @override
+  String get authErrorInvalidEmail => 'Invalid email';
+
+  @override
+  String get authErrorTooManyRequests => 'Too many attempts. Please wait';
+
+  @override
+  String get authErrorGeneric => 'Something went wrong. Try again later';
 
   @override
   String get settingsAccountSection => 'Account';

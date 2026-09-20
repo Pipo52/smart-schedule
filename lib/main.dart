@@ -1,6 +1,7 @@
+import 'dart:developer' as developer;
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import 'firebase_options.dart';
@@ -20,12 +21,23 @@ import 'services/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await HiveService.init();
-  await HiveService.ensureDefaultProfile();
-  await NotificationService.instance.init();
-
-  runApp(const SmartScheduleApp());
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    await HiveService.init();
+    await HiveService.ensureDefaultProfile();
+    await NotificationService.instance.init();
+    runApp(const SmartScheduleApp());
+  } catch (error, stackTrace) {
+    developer.log(
+      'Startup failed',
+      error: error,
+      stackTrace: stackTrace,
+      name: 'SmartSchedule',
+    );
+    runApp(_StartupErrorApp(message: error.toString()));
+  }
 }
 
 class SmartScheduleApp extends StatelessWidget {
@@ -152,7 +164,11 @@ class _AppViewState extends State<_AppView> with WidgetsBindingObserver {
     // Keep the rolling notification window topped up whenever the app comes
     // back to the foreground.
     if (state == AppLifecycleState.resumed) {
-      context.read<ScheduleProvider>().rescheduleAllNotifications();
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted) {
+          context.read<ScheduleProvider>().rescheduleAllNotifications();
+        }
+      });
     }
   }
 
@@ -176,13 +192,13 @@ class _AppViewState extends State<_AppView> with WidgetsBindingObserver {
       themeMode: settings.themeMode,
       theme: ThemeData(
         colorScheme: lightColorScheme,
-        textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme),
+        textTheme: ThemeData.light().textTheme,
         scaffoldBackgroundColor: const Color(0xFFF8F9FD),
         useMaterial3: true,
       ),
       darkTheme: ThemeData(
         colorScheme: darkColorScheme,
-        textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
+        textTheme: ThemeData.dark().textTheme,
         scaffoldBackgroundColor: const Color(0xFF121212),
         useMaterial3: true,
       ),
@@ -200,5 +216,30 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = context.watch<AuthProvider>().currentUser;
     return user == null ? const AuthScreen() : const RootShell();
+  }
+}
+
+class _StartupErrorApp extends StatelessWidget {
+  const _StartupErrorApp({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                'Ошибка запуска\n\n$message',
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

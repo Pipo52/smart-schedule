@@ -148,7 +148,7 @@ class _PeriodFormScreenState extends State<PeriodFormScreen> {
               decoration: InputDecoration(labelText: l10n.periodNameField),
               textCapitalization: TextCapitalization.sentences,
               validator: (value) => value == null || value.trim().isEmpty
-                  ? l10n.periodNameField
+                  ? l10n.fieldRequired
                   : null,
             ),
             const SizedBox(height: 16),

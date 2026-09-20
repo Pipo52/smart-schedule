@@ -220,6 +220,12 @@ abstract class AppLocalizations {
   /// **'Confirm'**
   String get confirm;
 
+  /// No description provided for @fieldRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required field'**
+  String get fieldRequired;
+
   /// No description provided for @emptyLessonsTitle.
   ///
   /// In en, this message translates to:
@@ -1120,6 +1126,12 @@ abstract class AppLocalizations {
   /// **'Restore'**
   String get restoreLesson;
 
+  /// No description provided for @restoreThisClass.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore class'**
+  String get restoreThisClass;
+
   /// No description provided for @cancelledBadge.
   ///
   /// In en, this message translates to:
@@ -1221,6 +1233,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter your password'**
   String get authPasswordRequired;
+
+  /// No description provided for @authConfirmPasswordField.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm password'**
+  String get authConfirmPasswordField;
+
+  /// No description provided for @authPasswordsDoNotMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get authPasswordsDoNotMatch;
+
+  /// No description provided for @authPasswordTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 6 characters'**
+  String get authPasswordTooShort;
+
+  /// No description provided for @authErrorEmailAlreadyInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'This email is already registered'**
+  String get authErrorEmailAlreadyInUse;
+
+  /// No description provided for @authErrorWrongPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect password'**
+  String get authErrorWrongPassword;
+
+  /// No description provided for @authErrorUserNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'User not found'**
+  String get authErrorUserNotFound;
+
+  /// No description provided for @authErrorWeakPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Password is too weak (minimum 6 characters)'**
+  String get authErrorWeakPassword;
+
+  /// No description provided for @authErrorInvalidEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid email'**
+  String get authErrorInvalidEmail;
+
+  /// No description provided for @authErrorTooManyRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Please wait'**
+  String get authErrorTooManyRequests;
+
+  /// No description provided for @authErrorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Try again later'**
+  String get authErrorGeneric;
 
   /// No description provided for @settingsAccountSection.
   ///

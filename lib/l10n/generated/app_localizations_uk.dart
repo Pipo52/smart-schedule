@@ -76,6 +76,9 @@ class AppLocalizationsUk extends AppLocalizations {
   String get confirm => 'Підтвердити';
 
   @override
+  String get fieldRequired => 'Обов\'язкове поле';
+
+  @override
   String get emptyLessonsTitle => 'Пар немає';
 
   @override
@@ -571,6 +574,9 @@ class AppLocalizationsUk extends AppLocalizations {
   String get restoreLesson => 'Відновити';
 
   @override
+  String get restoreThisClass => 'Відновити пару';
+
+  @override
   String get cancelledBadge => 'Скасовано';
 
   @override
@@ -625,6 +631,37 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get authPasswordRequired => 'Введіть пароль';
+
+  @override
+  String get authConfirmPasswordField => 'Підтвердіть пароль';
+
+  @override
+  String get authPasswordsDoNotMatch => 'Паролі не збігаються';
+
+  @override
+  String get authPasswordTooShort => 'Пароль має містити щонайменше 6 символів';
+
+  @override
+  String get authErrorEmailAlreadyInUse => 'Цей email уже зареєстровано';
+
+  @override
+  String get authErrorWrongPassword => 'Невірний пароль';
+
+  @override
+  String get authErrorUserNotFound => 'Користувача не знайдено';
+
+  @override
+  String get authErrorWeakPassword =>
+      'Пароль занадто простий (мінімум 6 символів)';
+
+  @override
+  String get authErrorInvalidEmail => 'Некоректний email';
+
+  @override
+  String get authErrorTooManyRequests => 'Забагато спроб. Зачекайте';
+
+  @override
+  String get authErrorGeneric => 'Сталася помилка. Спробуйте пізніше';
 
   @override
   String get settingsAccountSection => 'Акаунт';
