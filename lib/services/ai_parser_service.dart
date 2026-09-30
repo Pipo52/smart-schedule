@@ -8,6 +8,7 @@ import '../models/lesson.dart';
 import '../models/semester_period.dart';
 import '../models/task.dart';
 import 'ai_file_io.dart' if (dart.library.js_interop) 'ai_file_web.dart';
+export 'ai_file_io.dart' if (dart.library.js_interop) 'ai_file_web.dart';
 
 enum AiParserErrorCode {
   fileTooLarge,
@@ -57,6 +58,9 @@ class AiParserService {
 
   static const int maxFileBytes = 15 * 1024 * 1024;
 
+  /// Live Gemini model. Change this only when the API returns model-not-found.
+  static const String geminiModel = 'gemini-3.6-flash';
+
   static const String _prompt = '''
 You are an expert data extractor. Extract the university class timetable from the attached PDF or image.
 The timetable might be in Russian or Ukrainian. Translate the concepts to match the required English JSON fields.
@@ -94,13 +98,27 @@ Make your BEST EFFORT to extract at least some classes even if the format is mes
     }
 
     final bytes = await readAiFileBytes(filePath);
+    return parseScheduleFromBytes(
+      bytes: bytes,
+      mimeType: mimeType,
+      apiKey: apiKey,
+    );
+  }
+
+  Future<List<Lesson>> parseScheduleFromBytes({
+    required Uint8List bytes,
+    required String mimeType,
+    required String apiKey,
+  }) async {
+    if (apiKey.trim().isEmpty) {
+      throw AiParserException(AiParserErrorCode.invalidKey);
+    }
     if (bytes.length > maxFileBytes) {
       throw AiParserException(AiParserErrorCode.fileTooLarge);
     }
 
-    // ИСПОЛЬЗУЕМ СОВРЕМЕННУЮ МОДЕЛЬ gemini-3.6-flash
     final model = GenerativeModel(
-      model: 'gemini-3.6-flash',
+      model: geminiModel,
       apiKey: apiKey.trim(),
       generationConfig: GenerationConfig(
         temperature: 0.1,
@@ -153,7 +171,7 @@ Make your BEST EFFORT to extract at least some classes even if the format is mes
     }
 
     final model = GenerativeModel(
-      model: 'gemini-3.6-flash',
+      model: geminiModel,
       apiKey: apiKey.trim(),
       generationConfig: GenerationConfig(
         temperature: 0.1,

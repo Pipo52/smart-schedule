@@ -38,23 +38,12 @@ class DaySelector extends StatelessWidget {
             curve: Curves.easeOut,
             decoration: BoxDecoration(
               color: selected
-                  ? theme.colorScheme.primary
+                  ? theme.colorScheme.primaryContainer
                   : theme.colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: selected
-                  ? [
-                      BoxShadow(
-                        color: theme.colorScheme.primary.withValues(
-                          alpha: 0.22,
-                        ),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
-                      ),
-                    ]
-                  : null,
+              borderRadius: BorderRadius.circular(24),
             ),
             child: InkWell(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(24),
               onTap: () => onChanged(weekday),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -63,7 +52,7 @@ class DaySelector extends StatelessWidget {
                     label,
                     style: theme.textTheme.labelLarge?.copyWith(
                       color: selected
-                          ? theme.colorScheme.onPrimary
+                          ? theme.colorScheme.onPrimaryContainer
                           : theme.colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w700,
                     ),

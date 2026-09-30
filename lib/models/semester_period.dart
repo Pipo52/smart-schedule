@@ -29,6 +29,7 @@ class SemesterPeriod extends HiveObject {
     required this.type,
     required this.profileId,
     this.colorValue,
+    this.updatedAt,
   });
 
   @HiveField(0)
@@ -56,6 +57,9 @@ class SemesterPeriod extends HiveObject {
   @HiveField(6)
   int? colorValue;
 
+  @HiveField(7)
+  DateTime? updatedAt;
+
   SemesterPeriod copyWith({
     String? name,
     DateTime? startDate,
@@ -63,6 +67,7 @@ class SemesterPeriod extends HiveObject {
     SemesterPeriodType? type,
     String? profileId,
     int? colorValue,
+    DateTime? updatedAt,
     bool clearColor = false,
   }) {
     return SemesterPeriod(
@@ -73,6 +78,7 @@ class SemesterPeriod extends HiveObject {
       type: type ?? this.type,
       profileId: profileId ?? this.profileId,
       colorValue: clearColor ? null : (colorValue ?? this.colorValue),
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../l10n/generated/app_localizations.dart';
 import '../models/exam.dart';
+import '../utils/date_format_cache.dart';
 import '../utils/enum_labels.dart';
 
 class ExamTile extends StatelessWidget {
@@ -17,7 +17,7 @@ class ExamTile extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final localeCode = Localizations.localeOf(context).toString();
-    final dateLabel = DateFormat.yMMMd(localeCode).add_Hm().format(exam.date);
+    final dateLabel = DateFormatCache.yMMMdHm(localeCode).format(exam.date);
 
     final now = DateTime.now();
     final isPast = exam.date.isBefore(now);

@@ -18,13 +18,12 @@ import 'week_calculator.dart';
 /// Design note: `flutter_local_notifications` has no built-in concept of a
 /// "every other week" recurrence, so bi-weekly (Week 1 / Week 2 only)
 /// lessons are scheduled as a batch of individual one-off notifications for
-/// the next [_lessonLookaheadOccurrences] matching occurrences rather than a
+/// the next [lessonLookaheadOccurrences] matching occurrences rather than a
 /// single repeating rule. The same approach is used uniformly for "every
 /// week" lessons too, for a single, easy-to-reason-about
 /// schedule/cancel code path. Because of this, notifications only cover a
-/// rolling window into the future - call [rescheduleAll] periodically (the
-/// app does so on every launch, see `ScheduleProvider`) to keep the window
-/// topped up.
+/// rolling window into the future. The app tops the window up on launch and
+/// whenever it returns to the foreground.
 class NotificationService {
   NotificationService._internal();
 
@@ -36,7 +35,95 @@ class NotificationService {
   bool _initialized = false;
 
   /// How many upcoming matching occurrences to schedule per lesson.
-  static const int lessonLookaheadOccurrences = 24;
+  /// About eleven months of a weekly class. Cancelling a lesson removes only
+  /// the occurrence numbers this process actually scheduled. The full window
+  /// is cleared when those numbers are not known yet, for example after a restart.
+  static const int lessonLookaheadOccurrences = 48;
+
+  /// Keeps the total of exact lesson alarms under Android's practical limit
+  /// when many lessons have reminders turned on.
+  static const int maxPendingLessonAlarms = 400;
+
+  static const Duration reminderWindowWarning = Duration(days: 14);
+
+  DateTime? _earliestCoverageEnd;
+  int _occurrencesThisPass = lessonLookaheadOccurrences;
+  final Map<String, String> _fingerprints = {};
+  final Map<String, List<int>> _scheduledIndices = {};
+  final Map<String, DateTime> _coverageByLesson = {};
+
+  DateTime? get coverageEndsAt {
+    if (_coverageByLesson.isEmpty) return _earliestCoverageEnd;
+    DateTime? earliest;
+    for (final end in _coverageByLesson.values) {
+      if (earliest == null || end.isBefore(earliest)) earliest = end;
+    }
+    return earliest;
+  }
+
+  int get occurrencesThisPass => _occurrencesThisPass;
+
+  /// True when the soonest scheduled lesson reminder window ends within
+  /// [reminderWindowWarning]. Opening the app reschedules and pushes this out.
+  bool get reminderWindowEndingSoon {
+    final ends = coverageEndsAt;
+    if (ends == null) return false;
+    final remaining = ends.difference(DateTime.now());
+    return !remaining.isNegative && remaining < reminderWindowWarning;
+  }
+
+  /// Splits [maxPendingLessonAlarms] across lessons that have reminders.
+  void beginSchedulingPass(int remindingLessons) {
+    if (remindingLessons <= 0) {
+      _occurrencesThisPass = lessonLookaheadOccurrences;
+      return;
+    }
+    final share = maxPendingLessonAlarms ~/ remindingLessons;
+    if (share < 8) {
+      _occurrencesThisPass = 8;
+    } else if (share > lessonLookaheadOccurrences) {
+      _occurrencesThisPass = lessonLookaheadOccurrences;
+    } else {
+      _occurrencesThisPass = share;
+    }
+  }
+
+  @visibleForTesting
+  void setCoverageEndForTesting(DateTime? ends) {
+    _coverageByLesson.clear();
+    _earliestCoverageEnd = ends;
+  }
+
+  /// Stable description of one lesson's alarms. Unchanged lessons are left
+  /// alone while their scheduled coverage still reaches past the warning window.
+  static String lessonAlarmKey({
+    required Lesson lesson,
+    required int reminderMinutes,
+    required DateTime referenceMonday,
+    int? manualOverride,
+    required int occurrences,
+  }) {
+    return [
+      lesson.id,
+      lesson.subjectName,
+      lesson.room,
+      lesson.startTime,
+      lesson.endTime,
+      lesson.weekday,
+      lesson.weekType.index,
+      lesson.reminderEnabled,
+      reminderMinutes,
+      referenceMonday.toIso8601String(),
+      manualOverride ?? '',
+      occurrences,
+    ].join('|');
+  }
+
+  bool _coverageFresh(String lessonId) {
+    final end = _coverageByLesson[lessonId];
+    if (end == null) return false;
+    return end.isAfter(DateTime.now().add(reminderWindowWarning));
+  }
 
   static const AndroidNotificationDetails _androidLessonDetails =
       AndroidNotificationDetails(
@@ -81,7 +168,7 @@ class NotificationService {
       // will still work, just not necessarily aligned to local wall time.
     }
 
-    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidInit = AndroidInitializationSettings('@mipmap/launcher_icon');
 
     await _plugin.initialize(
       settings: const InitializationSettings(android: androidInit),
@@ -159,17 +246,34 @@ class NotificationService {
     int? manualOverride,
   }) async {
     if (kIsWeb) return;
+    final fingerprint = lessonAlarmKey(
+      lesson: lesson,
+      reminderMinutes: reminderMinutes,
+      referenceMonday: referenceMonday,
+      manualOverride: manualOverride,
+      occurrences: _occurrencesThisPass,
+    );
+    final remindersOff = !lesson.reminderEnabled || reminderMinutes <= 0;
+    if (_fingerprints[lesson.id] == fingerprint &&
+        (remindersOff || _coverageFresh(lesson.id))) {
+      return;
+    }
     await cancelLessonNotifications(lesson.id);
-    if (!lesson.reminderEnabled || reminderMinutes <= 0) return;
+    if (remindersOff) {
+      _fingerprints[lesson.id] = fingerprint;
+      return;
+    }
 
     final occurrences = _nextOccurrenceDates(
       lesson,
       referenceMonday: referenceMonday,
       manualOverride: manualOverride,
-      maxOccurrences: lessonLookaheadOccurrences,
+      maxOccurrences: _occurrencesThisPass,
     );
 
     final now = DateTime.now();
+    DateTime? lastFire;
+    final scheduled = <int>[];
     for (var i = 0; i < occurrences.length; i++) {
       final day = occurrences[i];
       final fireAt = DateTime(
@@ -178,6 +282,10 @@ class NotificationService {
         day.day,
       ).add(Duration(minutes: lesson.startMinutes - reminderMinutes));
       if (!fireAt.isAfter(now)) continue;
+      if (lastFire == null || fireAt.isAfter(lastFire)) {
+        lastFire = fireAt;
+      }
+      scheduled.add(i);
 
       await _plugin.zonedSchedule(
         id: _stableId('lesson:${lesson.id}:$i'),
@@ -192,12 +300,39 @@ class NotificationService {
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       );
     }
+    _scheduledIndices[lesson.id] = scheduled;
+    _fingerprints[lesson.id] = fingerprint;
+    _noteCoverage(lesson.id, lastFire);
+  }
+
+  void _noteCoverage(String lessonId, DateTime? lastFire) {
+    if (lastFire == null) {
+      _coverageByLesson.remove(lessonId);
+    } else {
+      _coverageByLesson[lessonId] = lastFire;
+    }
+    DateTime? earliest;
+    for (final end in _coverageByLesson.values) {
+      if (earliest == null || end.isBefore(earliest)) earliest = end;
+    }
+    _earliestCoverageEnd = earliest;
   }
 
   Future<void> cancelLessonNotifications(String lessonId) async {
     if (kIsWeb) return;
-    for (var i = 0; i < lessonLookaheadOccurrences; i++) {
-      await _plugin.cancel(id: _stableId('lesson:$lessonId:$i'));
+    final indices = _scheduledIndices.remove(lessonId);
+    _coverageByLesson.remove(lessonId);
+    _fingerprints.remove(lessonId);
+    DateTime? earliest;
+    for (final end in _coverageByLesson.values) {
+      if (earliest == null || end.isBefore(earliest)) earliest = end;
+    }
+    _earliestCoverageEnd = earliest;
+    final toCancel =
+        indices ??
+        List<int>.generate(lessonLookaheadOccurrences, (index) => index);
+    for (final index in toCancel) {
+      await _plugin.cancel(id: _stableId('lesson:$lessonId:$index'));
     }
   }
 

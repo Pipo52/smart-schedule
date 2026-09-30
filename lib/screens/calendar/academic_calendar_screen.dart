@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/semester_period.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/semester_period_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../services/week_calculator.dart';
@@ -52,9 +52,12 @@ class AcademicCalendarScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-        itemCount: 13,
+      body: RefreshIndicator(
+        onRefresh: () => context.read<AuthProvider>().refreshFromCloud(),
+        child: ListView.builder(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+          itemCount: 13,
         itemBuilder: (context, index) {
           if (index == 0) {
             return Column(
@@ -89,7 +92,8 @@ class AcademicCalendarScreen extends StatelessWidget {
           );
         },
       ),
-    );
+    ),
+  );
   }
 }
 
@@ -141,7 +145,10 @@ class _MonthGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final firstDay = DateTime(year, month);
+    final daysInMonth = DateTime(year, month + 1, 0).day;
     final leadingEmptyCells = firstDay.weekday - 1;
+    final totalCells = leadingEmptyCells + daysInMonth;
+    final totalRows = (totalCells / 7).ceil();
     final gridStart = firstDay.subtract(Duration(days: leadingEmptyCells));
     final today = DateTime.now();
 
@@ -151,7 +158,7 @@ class _MonthGrid extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            DateFormat.MMMM(localeCode).format(firstDay),
+            localizedMonthName(localeCode, month, year),
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w700,
             ),
@@ -180,7 +187,7 @@ class _MonthGrid extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 4),
-          for (var row = 0; row < 6; row++)
+          for (var row = 0; row < totalRows; row++)
             _WeekRow(
               rowStart: gridStart.add(Duration(days: row * 7)),
               month: month,
@@ -273,18 +280,33 @@ class _DayCell extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.all(2),
         decoration: BoxDecoration(
-          color: periodColor?.withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(9),
           border: isToday
               ? Border.all(color: theme.colorScheme.primary, width: 1.5)
               : null,
         ),
-        alignment: Alignment.center,
-        child: Text(
-          '${date.day}',
-          style: theme.textTheme.labelMedium?.copyWith(
-            fontWeight: isToday ? FontWeight.w800 : FontWeight.w500,
-          ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Text(
+              '${date.day}',
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: isToday ? FontWeight.w800 : FontWeight.w500,
+              ),
+            ),
+            if (periodColor != null)
+              Positioned(
+                bottom: 3,
+                child: Container(
+                  width: 4,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: periodColor,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );

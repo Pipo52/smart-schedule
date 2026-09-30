@@ -280,5 +280,54 @@
   },
   "settingsSignOut": "Sign out",
   "authOrDivider": "OR",
-  "authSignInWithGoogle": "Sign in with Google"
+  "authSignInWithGoogle": "Sign in with Google",
+  "breakShort": "{minutes} min break",
+  "@breakShort": {
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  },
+  "breakLong": "{hours}h {minutes}m window",
+  "@breakLong": {
+    "placeholders": {
+      "hours": {"type": "int"},
+      "minutes": {"type": "int"}
+    }
+  },
+  "breakHoursOnly": "{hours}h window",
+  "@breakHoursOnly": {
+    "placeholders": {
+      "hours": {"type": "int"}
+    }
+  },
+  "lessonTimeRemaining": "{minutes}m left",
+  "@lessonTimeRemaining": {
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  },
+  "lessonTimeRemainingHours": "{hours}h {minutes}m left",
+  "@lessonTimeRemainingHours": {
+    "placeholders": {
+      "hours": {"type": "int"},
+      "minutes": {"type": "int"}
+    }
+  },
+  "lessonTimeRemainingHoursOnly": "{hours}h left",
+  "@lessonTimeRemainingHoursOnly": {
+    "placeholders": {
+      "hours": {"type": "int"}
+    }
+  },
+  "cloudSaveFailed": "Couldn't save to the cloud. Try again.",
+  "cloudOutOfDate": "Not in the cloud yet. Changes stay on this device until the next sync.",
+  "reminderWindowEnding": "Lesson reminders run out soon. Open the app to refresh them.",
+  "settingsBatteryTitle": "Let reminders run in the background",
+  "settingsBatterySubtitle": "Battery saving on this phone can stop lesson alarms. Turn off optimization for Smart Schedule.",
+  "widgetEmpty": "No upcoming classes",
+  "widgetNow": "Now",
+  "widgetToday": "Today",
+  "widgetTomorrow": "Tomorrow",
+  "widgetNext": "Next"
 }
+

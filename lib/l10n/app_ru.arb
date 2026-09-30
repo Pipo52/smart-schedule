@@ -221,5 +221,22 @@
   "settingsSignedInAs": "Вы вошли как {email}",
   "settingsSignOut": "Выйти из аккаунта",
   "authOrDivider": "ИЛИ",
-  "authSignInWithGoogle": "Войти через Google"
+  "authSignInWithGoogle": "Войти через Google",
+  "breakShort": "Перерыв {minutes} мин",
+  "breakLong": "Окно {hours} ч {minutes} мин",
+  "breakHoursOnly": "Окно {hours} ч",
+  "lessonTimeRemaining": "До конца: {minutes} мин",
+  "lessonTimeRemainingHours": "До конца: {hours} ч {minutes} мин",
+  "lessonTimeRemainingHoursOnly": "До конца: {hours} ч",
+  "cloudSaveFailed": "Не сохранилось в облако, попробуйте ещё раз",
+  "cloudOutOfDate": "Пока не в облаке. Правки останутся на этом устройстве до следующей синхронизации.",
+  "reminderWindowEnding": "Напоминания о парах скоро закончатся. Откройте приложение, чтобы обновить их.",
+  "settingsBatteryTitle": "Разрешить напоминания в фоне",
+  "settingsBatterySubtitle": "Экономия батареи может остановить будильник пары. Отключите оптимизацию для Smart Schedule.",
+  "widgetEmpty": "Ближайших пар нет",
+  "widgetNow": "Сейчас",
+  "widgetToday": "Сегодня",
+  "widgetTomorrow": "Завтра",
+  "widgetNext": "Дальше"
 }
+

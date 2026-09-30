@@ -5,12 +5,45 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import '../services/cloud_sync_service.dart';
+import '../services/cloud_write_reporter.dart';
+
 /// Wraps [FirebaseAuth] and exposes the current signed-in user as
 /// observable state for the rest of the app.
 class AuthProvider extends ChangeNotifier {
   AuthProvider() {
-    _authSub = _auth.authStateChanges().listen((User? user) {
+    CloudSyncService.instance.onRemoteChange = () {
+      _syncEpoch++;
       notifyListeners();
+    };
+    _authSub = _auth.authStateChanges().listen((User? user) async {
+      final ticket = ++_authTicket;
+      if (user == null) {
+        await CloudSyncService.instance.stopListening();
+        CloudWriteReporter.instance.clearPending();
+        _isSyncing = false;
+        _isSynced = false;
+        notifyListeners();
+        return;
+      }
+      _isSyncing = true;
+      _isSynced = false;
+      notifyListeners();
+      try {
+        await CloudSyncService.instance.syncOnLogin(user.uid);
+        if (ticket != _authTicket) return;
+        CloudWriteReporter.instance.clearPending();
+        _isSynced = true;
+        _syncEpoch++;
+      } catch (_) {
+        if (ticket != _authTicket) return;
+        _isSynced = false;
+      } finally {
+        if (ticket == _authTicket) {
+          _isSyncing = false;
+          notifyListeners();
+        }
+      }
     });
     unawaited(ensureGoogleSignInReady());
   }
@@ -23,6 +56,42 @@ class AuthProvider extends ChangeNotifier {
 
   StreamSubscription<User?>? _authSub;
   StreamSubscription<GoogleSignInAuthenticationEvent>? _googleAuthSub;
+  int _authTicket = 0;
+  int _syncEpoch = 0;
+  bool _isSyncing = false;
+  bool _isSynced = false;
+
+  /// Increments after a successful cloud pull or push so the widget tree
+  /// can reload Hive-backed providers on the next frame.
+  int get syncEpoch => _syncEpoch;
+
+  bool get isSyncing => _isSyncing;
+
+  bool get isSynced => _isSynced;
+
+  /// Downloads the current cloud copy again. Used when the app returns
+  /// to the foreground and a snapshot may have been missed.
+  Future<void> refreshFromCloud() async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return;
+    if (CloudSyncService.shouldSkipResumePull(
+      lastPullAt: CloudSyncService.instance.lastPullAt,
+      now: DateTime.now(),
+      hasPendingFailure: CloudWriteReporter.instance.hasPendingFailure,
+    )) {
+      return;
+    }
+    try {
+      await CloudSyncService.instance.pullFromCloud(uid, replaceEmpty: true);
+      CloudWriteReporter.instance.clearPending();
+      _isSynced = true;
+      _syncEpoch++;
+      notifyListeners();
+    } catch (_) {
+      _isSynced = false;
+      notifyListeners();
+    }
+  }
 
   /// `google_sign_in` requires `initialize()` to be called exactly once
   /// before any other method; this future caches that single call.
@@ -37,7 +106,10 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> _initializeGoogleSignIn() async {
-    await _googleSignIn.initialize(clientId: kIsWeb ? _webClientId : null);
+    await _googleSignIn.initialize(
+      clientId: kIsWeb ? _webClientId : null,
+      serverClientId: kIsWeb ? null : _webClientId,
+    );
     _googleAuthSub = _googleSignIn.authenticationEvents.listen((event) async {
       if (event is GoogleSignInAuthenticationEventSignIn) {
         await _signInToFirebase(event.user);
@@ -47,7 +119,12 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> _signInToFirebase(GoogleSignInAccount googleUser) async {
     final idToken = googleUser.authentication.idToken;
-    if (idToken == null) return;
+    if (idToken == null) {
+      throw FirebaseAuthException(
+        code: 'missing-id-token',
+        message: 'Google Sign-In did not return an ID token.',
+      );
+    }
     await _auth.signInWithCredential(
       GoogleAuthProvider.credential(idToken: idToken),
     );

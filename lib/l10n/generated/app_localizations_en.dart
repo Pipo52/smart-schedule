@@ -676,4 +676,67 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authSignInWithGoogle => 'Sign in with Google';
+
+  @override
+  String breakShort(int minutes) {
+    return '$minutes min break';
+  }
+
+  @override
+  String breakLong(int hours, int minutes) {
+    return '${hours}h ${minutes}m window';
+  }
+
+  @override
+  String breakHoursOnly(int hours) {
+    return '${hours}h window';
+  }
+
+  @override
+  String lessonTimeRemaining(int minutes) {
+    return '${minutes}m left';
+  }
+
+  @override
+  String lessonTimeRemainingHours(int hours, int minutes) {
+    return '${hours}h ${minutes}m left';
+  }
+
+  @override
+  String lessonTimeRemainingHoursOnly(int hours) {
+    return '${hours}h left';
+  }
+
+  @override
+  String get cloudSaveFailed => 'Couldn\'t save to the cloud. Try again.';
+
+  @override
+  String get cloudOutOfDate =>
+      'Not in the cloud yet. Changes stay on this device until the next sync.';
+
+  @override
+  String get reminderWindowEnding =>
+      'Lesson reminders run out soon. Open the app to refresh them.';
+
+  @override
+  String get settingsBatteryTitle => 'Let reminders run in the background';
+
+  @override
+  String get settingsBatterySubtitle =>
+      'Battery saving on this phone can stop lesson alarms. Turn off optimization for Smart Schedule.';
+
+  @override
+  String get widgetEmpty => 'No upcoming classes';
+
+  @override
+  String get widgetNow => 'Now';
+
+  @override
+  String get widgetToday => 'Today';
+
+  @override
+  String get widgetTomorrow => 'Tomorrow';
+
+  @override
+  String get widgetNext => 'Next';
 }

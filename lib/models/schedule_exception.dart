@@ -23,6 +23,7 @@ class ScheduleException extends HiveObject {
     this.newRoom,
     this.newLecturer,
     this.newNotes,
+    this.updatedAt,
   });
 
   @HiveField(0)
@@ -59,4 +60,7 @@ class ScheduleException extends HiveObject {
 
   @HiveField(9)
   String? newNotes;
+
+  @HiveField(10)
+  DateTime? updatedAt;
 }

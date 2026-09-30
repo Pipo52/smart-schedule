@@ -1,0 +1,47 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    match /users/{userId} {
+      match /lessons/{id} {
+        allow read, write: if isOwner(userId);
+      }
+      match /tasks/{id} {
+        allow read, write: if isOwner(userId);
+      }
+      match /exams/{id} {
+        allow read, write: if isOwner(userId);
+      }
+      match /semester_periods/{id} {
+        allow read, write: if isOwner(userId);
+      }
+      match /schedule_exceptions/{id} {
+        allow read, write: if isOwner(userId);
+      }
+      match /profiles/{id} {
+        allow read, write: if isOwner(userId);
+      }
+      match /settings/app {
+        allow read, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+          && !request.resource.data.keys().hasAny(['geminiApiKey'])
+          && (
+            !('geminiApiKeyEnc' in request.resource.data)
+            || (
+              request.resource.data.geminiApiKeyEnc is string
+              && request.resource.data.geminiApiKeyEnc.size() < 4096
+            )
+          );
+      }
+      match /meta/clock {
+        allow read, delete: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+          && request.resource.data.keys().hasOnly(['clockSample'])
+          && request.resource.data.clockSample is timestamp;
+      }
+    }
+  }
+}

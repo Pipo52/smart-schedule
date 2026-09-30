@@ -680,4 +680,67 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get authSignInWithGoogle => 'Войти через Google';
+
+  @override
+  String breakShort(int minutes) {
+    return 'Перерыв $minutes мин';
+  }
+
+  @override
+  String breakLong(int hours, int minutes) {
+    return 'Окно $hours ч $minutes мин';
+  }
+
+  @override
+  String breakHoursOnly(int hours) {
+    return 'Окно $hours ч';
+  }
+
+  @override
+  String lessonTimeRemaining(int minutes) {
+    return 'До конца: $minutes мин';
+  }
+
+  @override
+  String lessonTimeRemainingHours(int hours, int minutes) {
+    return 'До конца: $hours ч $minutes мин';
+  }
+
+  @override
+  String lessonTimeRemainingHoursOnly(int hours) {
+    return 'До конца: $hours ч';
+  }
+
+  @override
+  String get cloudSaveFailed => 'Не сохранилось в облако, попробуйте ещё раз';
+
+  @override
+  String get cloudOutOfDate =>
+      'Пока не в облаке. Правки останутся на этом устройстве до следующей синхронизации.';
+
+  @override
+  String get reminderWindowEnding =>
+      'Напоминания о парах скоро закончатся. Откройте приложение, чтобы обновить их.';
+
+  @override
+  String get settingsBatteryTitle => 'Разрешить напоминания в фоне';
+
+  @override
+  String get settingsBatterySubtitle =>
+      'Экономия батареи может остановить будильник пары. Отключите оптимизацию для Smart Schedule.';
+
+  @override
+  String get widgetEmpty => 'Ближайших пар нет';
+
+  @override
+  String get widgetNow => 'Сейчас';
+
+  @override
+  String get widgetToday => 'Сегодня';
+
+  @override
+  String get widgetTomorrow => 'Завтра';
+
+  @override
+  String get widgetNext => 'Дальше';
 }

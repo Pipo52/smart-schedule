@@ -1323,6 +1323,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign in with Google'**
   String get authSignInWithGoogle;
+
+  /// No description provided for @breakShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} min break'**
+  String breakShort(int minutes);
+
+  /// No description provided for @breakLong.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h {minutes}m window'**
+  String breakLong(int hours, int minutes);
+
+  /// No description provided for @breakHoursOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h window'**
+  String breakHoursOnly(int hours);
+
+  /// No description provided for @lessonTimeRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes}m left'**
+  String lessonTimeRemaining(int minutes);
+
+  /// No description provided for @lessonTimeRemainingHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h {minutes}m left'**
+  String lessonTimeRemainingHours(int hours, int minutes);
+
+  /// No description provided for @lessonTimeRemainingHoursOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h left'**
+  String lessonTimeRemainingHoursOnly(int hours);
+
+  /// No description provided for @cloudSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save to the cloud. Try again.'**
+  String get cloudSaveFailed;
+
+  /// No description provided for @cloudOutOfDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Not in the cloud yet. Changes stay on this device until the next sync.'**
+  String get cloudOutOfDate;
+
+  /// No description provided for @reminderWindowEnding.
+  ///
+  /// In en, this message translates to:
+  /// **'Lesson reminders run out soon. Open the app to refresh them.'**
+  String get reminderWindowEnding;
+
+  /// No description provided for @settingsBatteryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Let reminders run in the background'**
+  String get settingsBatteryTitle;
+
+  /// No description provided for @settingsBatterySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery saving on this phone can stop lesson alarms. Turn off optimization for Smart Schedule.'**
+  String get settingsBatterySubtitle;
+
+  /// No description provided for @widgetEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming classes'**
+  String get widgetEmpty;
+
+  /// No description provided for @widgetNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Now'**
+  String get widgetNow;
+
+  /// No description provided for @widgetToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get widgetToday;
+
+  /// No description provided for @widgetTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get widgetTomorrow;
+
+  /// No description provided for @widgetNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get widgetNext;
 }
 
 class _AppLocalizationsDelegate

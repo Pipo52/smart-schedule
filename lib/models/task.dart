@@ -26,6 +26,7 @@ class Task extends HiveObject {
     this.reminderOffsetMinutes,
     this.linkedExamId,
     required this.profileId,
+    this.updatedAt,
   });
 
   @HiveField(0)
@@ -65,6 +66,9 @@ class Task extends HiveObject {
   @HiveField(9, defaultValue: 'default')
   String profileId;
 
+  @HiveField(10)
+  DateTime? updatedAt;
+
   Task copyWith({
     String? title,
     String? linkedSubject,
@@ -75,6 +79,7 @@ class Task extends HiveObject {
     int? reminderOffsetMinutes,
     String? linkedExamId,
     String? profileId,
+    DateTime? updatedAt,
     bool clearReminder = false,
     bool clearLinkedSubject = false,
     bool clearLinkedExam = false,
@@ -96,6 +101,7 @@ class Task extends HiveObject {
           ? null
           : (linkedExamId ?? this.linkedExamId),
       profileId: profileId ?? this.profileId,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }

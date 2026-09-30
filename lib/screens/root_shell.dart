@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/generated/app_localizations.dart';
+import '../services/cloud_write_reporter.dart';
 import '../models/schedule_profile.dart';
+import '../providers/auth_provider.dart';
 import '../providers/profile_provider.dart';
 import 'calendar/academic_calendar_screen.dart';
 import 'exams/exams_screen.dart';
@@ -226,40 +228,54 @@ class _RootShellState extends State<RootShell> {
           ),
         ),
       ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 600),
-          child: screens[_index],
-        ),
+      body: Stack(
+        children: [
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: IndexedStack(index: _index, children: screens),
+            ),
+          ),
+          const Align(
+            alignment: Alignment.topRight,
+            child: SafeArea(child: _CloudSyncIndicator()),
+          ),
+        ],
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
-        destinations: [
-          NavigationDestination(
-            icon: const Icon(Icons.today_outlined),
-            selectedIcon: const Icon(Icons.today),
-            label: l10n.navHome,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.checklist_outlined),
-            selectedIcon: const Icon(Icons.checklist),
-            label: l10n.navTasks,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.event_note_outlined),
-            selectedIcon: const Icon(Icons.event_note),
-            label: l10n.navExams,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.date_range_outlined),
-            selectedIcon: const Icon(Icons.date_range),
-            label: l10n.navCalendar,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.settings_outlined),
-            selectedIcon: const Icon(Icons.settings),
-            label: l10n.navSettings,
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const _CloudOutOfDateBanner(),
+          NavigationBar(
+            selectedIndex: _index,
+            onDestinationSelected: (i) => setState(() => _index = i),
+            destinations: [
+              NavigationDestination(
+                icon: const Icon(Icons.today_outlined),
+                selectedIcon: const Icon(Icons.today),
+                label: l10n.navHome,
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.checklist_outlined),
+                selectedIcon: const Icon(Icons.checklist),
+                label: l10n.navTasks,
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.event_note_outlined),
+                selectedIcon: const Icon(Icons.event_note),
+                label: l10n.navExams,
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.date_range_outlined),
+                selectedIcon: const Icon(Icons.date_range),
+                label: l10n.navCalendar,
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.settings_outlined),
+                selectedIcon: const Icon(Icons.settings),
+                label: l10n.navSettings,
+              ),
+            ],
           ),
         ],
       ),
@@ -267,4 +283,66 @@ class _RootShellState extends State<RootShell> {
   }
 }
 
+class _CloudOutOfDateBanner extends StatelessWidget {
+  const _CloudOutOfDateBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    return ListenableBuilder(
+      listenable: CloudWriteReporter.instance,
+      builder: (context, _) {
+        final signedIn = auth.currentUser != null;
+        final show =
+            signedIn &&
+            !auth.isSyncing &&
+            (!auth.isSynced || CloudWriteReporter.instance.hasPendingFailure);
+        if (!show) return const SizedBox.shrink();
+        final colors = Theme.of(context).colorScheme;
+        return Material(
+          color: colors.errorContainer,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                Icon(Icons.cloud_off_outlined, color: colors.onErrorContainer),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    AppLocalizations.of(context).cloudOutOfDate,
+                    style: TextStyle(color: colors.onErrorContainer),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 enum _ProfileAction { rename, setDefault, delete }
+
+class _CloudSyncIndicator extends StatelessWidget {
+  const _CloudSyncIndicator();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AuthProvider>(
+      builder: (context, auth, _) {
+        if (auth.currentUser == null || !auth.isSyncing) {
+          return const SizedBox.shrink();
+        }
+        return const Padding(
+          padding: EdgeInsets.all(16),
+          child: SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        );
+      },
+    );
+  }
+}

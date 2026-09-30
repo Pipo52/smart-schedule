@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_displaymode/flutter_displaymode.dart';
 import 'package:provider/provider.dart';
 
 import 'firebase_options.dart';
@@ -16,16 +19,25 @@ import 'providers/settings_provider.dart';
 import 'providers/task_provider.dart';
 import 'screens/auth/auth_screen.dart';
 import 'screens/root_shell.dart';
+import 'services/cloud_write_reporter.dart';
 import 'services/hive_service.dart';
 import 'services/notification_service.dart';
+import 'services/schedule_widget_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (!kIsWeb) {
+    unawaited(() async {
+      try {
+        await FlutterDisplayMode.setHighRefreshRate();
+      } catch (_) {}
+    }());
+  }
   try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    await HiveService.init();
+    await Future.wait([
+      Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform),
+      HiveService.init(),
+    ]);
     await HiveService.ensureDefaultProfile();
     await NotificationService.instance.init();
     runApp(const SmartScheduleApp());
@@ -125,6 +137,20 @@ class SmartScheduleApp extends StatelessWidget {
             return provider;
           },
         ),
+        ProxyProvider<AuthProvider, int>(
+          lazy: false,
+          update: (context, auth, _) {
+            final uid = auth.currentUser?.uid;
+            context.read<ScheduleProvider>().updateUid(uid);
+            context.read<TaskProvider>().updateUid(uid);
+            context.read<ExamProvider>().updateUid(uid);
+            context.read<SemesterPeriodProvider>().updateUid(uid);
+            context.read<ScheduleExceptionProvider>().updateUid(uid);
+            context.read<ProfileProvider>().updateUid(uid);
+            context.read<SettingsProvider>().updateUid(uid);
+            return auth.syncEpoch;
+          },
+        ),
       ],
       child: const _AppView(),
     );
@@ -139,6 +165,30 @@ class _AppView extends StatefulWidget {
 }
 
 class _AppViewState extends State<_AppView> with WidgetsBindingObserver {
+  int _appliedSyncEpoch = 0;
+
+  // ColorScheme.fromSeed() performs expensive HCT palette generation.
+  // Caching as static fields means it runs exactly once per app launch
+  // instead of on every SettingsProvider.notifyListeners() rebuild.
+  static final ThemeData _lightTheme = ThemeData(
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: Colors.indigo,
+      brightness: Brightness.light,
+    ),
+    textTheme: ThemeData.light().textTheme,
+    scaffoldBackgroundColor: const Color(0xFFF8F9FD),
+    useMaterial3: true,
+  );
+  static final ThemeData _darkTheme = ThemeData(
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: Colors.indigo,
+      brightness: Brightness.dark,
+    ),
+    textTheme: ThemeData.dark().textTheme,
+    scaffoldBackgroundColor: const Color(0xFF121212),
+    useMaterial3: true,
+  );
+
   @override
   void initState() {
     super.initState();
@@ -146,10 +196,11 @@ class _AppViewState extends State<_AppView> with WidgetsBindingObserver {
     // Request notification permissions and top-up the scheduling window on
     // first launch, without blocking the first frame.
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final profileId = context.read<ScheduleProvider>().profileId;
       await NotificationService.instance.requestPermissions();
-      if (mounted) {
-        await context.read<ScheduleProvider>().rescheduleAllNotifications();
-      }
+      if (!mounted) return;
+      await context.read<ScheduleProvider>().rescheduleAllNotifications();
+      await ScheduleWidgetService.refresh(profileId);
     });
   }
 
@@ -164,6 +215,7 @@ class _AppViewState extends State<_AppView> with WidgetsBindingObserver {
     // Keep the rolling notification window topped up whenever the app comes
     // back to the foreground.
     if (state == AppLifecycleState.resumed) {
+      unawaited(context.read<AuthProvider>().refreshFromCloud());
       Future.delayed(const Duration(seconds: 3), () {
         if (mounted) {
           context.read<ScheduleProvider>().rescheduleAllNotifications();
@@ -174,37 +226,77 @@ class _AppViewState extends State<_AppView> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    final settings = context.watch<SettingsProvider>();
-    final lightColorScheme = ColorScheme.fromSeed(
-      seedColor: Colors.indigo,
-      brightness: Brightness.light,
+    final settings = context.select<SettingsProvider, (Locale?, ThemeMode)>(
+      (s) => (s.locale, s.themeMode),
     );
-    final darkColorScheme = ColorScheme.fromSeed(
-      seedColor: Colors.indigo,
-      brightness: Brightness.dark,
-    );
+    final syncEpoch = context.select<AuthProvider, int>((a) => a.syncEpoch);
+    _scheduleCloudReload(syncEpoch);
 
     return MaterialApp(
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
-      locale: settings.locale,
+      locale: settings.$1,
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
-      themeMode: settings.themeMode,
-      theme: ThemeData(
-        colorScheme: lightColorScheme,
-        textTheme: ThemeData.light().textTheme,
-        scaffoldBackgroundColor: const Color(0xFFF8F9FD),
-        useMaterial3: true,
-      ),
-      darkTheme: ThemeData(
-        colorScheme: darkColorScheme,
-        textTheme: ThemeData.dark().textTheme,
-        scaffoldBackgroundColor: const Color(0xFF121212),
-        useMaterial3: true,
-      ),
-      home: const AuthWrapper(),
+      scrollBehavior: const _NoOverscrollBehavior(),
+      themeMode: settings.$2,
+      theme: _lightTheme,
+      darkTheme: _darkTheme,
+      home: const _CloudFailureListener(child: AuthWrapper()),
     );
   }
+
+  void _scheduleCloudReload(int epoch) {
+    if (epoch == 0 || epoch == _appliedSyncEpoch) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || epoch == _appliedSyncEpoch) return;
+      _appliedSyncEpoch = epoch;
+      context.read<SettingsProvider>().reloadFromBox();
+      context.read<ProfileProvider>().reloadFromBox();
+      context.read<ScheduleProvider>().reloadFromBox();
+      context.read<TaskProvider>().reloadFromBox();
+      context.read<ExamProvider>().reloadFromBox();
+      context.read<SemesterPeriodProvider>().reloadFromBox();
+      context.read<ScheduleExceptionProvider>().reloadFromBox();
+    });
+  }
+}
+
+/// Shows one snackbar when a provider reports a failed Firestore write.
+class _CloudFailureListener extends StatefulWidget {
+  const _CloudFailureListener({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_CloudFailureListener> createState() => _CloudFailureListenerState();
+}
+
+class _CloudFailureListenerState extends State<_CloudFailureListener> {
+  StreamSubscription<void>? _subscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _subscription = CloudWriteReporter.instance.failures.listen((_) {
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.maybeOf(context);
+      if (messenger == null) return;
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context).cloudSaveFailed)),
+        );
+    });
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 /// Shows [AuthScreen] when signed out, or the main app ([RootShell]) once a
@@ -216,6 +308,22 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = context.watch<AuthProvider>().currentUser;
     return user == null ? const AuthScreen() : const RootShell();
+  }
+}
+
+/// Disables Material 3 [StretchingOverscrollIndicator], whose fragment
+/// shader (`stretch_effect.frag`) is compiled at runtime on Skia and
+/// re-run over the whole viewport on every overscroll frame.
+class _NoOverscrollBehavior extends MaterialScrollBehavior {
+  const _NoOverscrollBehavior();
+
+  @override
+  Widget buildOverscrollIndicator(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    return child;
   }
 }
 

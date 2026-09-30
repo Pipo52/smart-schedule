@@ -77,18 +77,15 @@ class BackupService {
   /// Opens a file picker for a `.json` file and imports it, replacing all
   /// existing local data. Returns `true` if a file was picked and imported.
   static Future<bool> pickAndImport() async {
-    if (kIsWeb) {
-      throw UnsupportedError('Backup import is not available on web.');
-    }
     final files = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: const ['json'],
     );
     if (files.isEmpty) return false;
-    final path = files.first.path;
-    if (path == null) return false;
+    final file = files.first;
+    final bytes = await file.readAsBytes();
+    final content = utf8.decode(bytes);
 
-    final content = await readBackupFile(path);
     final Map<String, dynamic> data =
         jsonDecode(content) as Map<String, dynamic>;
     await importFromJson(data);

@@ -21,13 +21,14 @@ class ScheduleProfileAdapter extends TypeAdapter<ScheduleProfile> {
       name: fields[1] as String,
       createdAt: fields[2] as DateTime,
       isDefault: fields[3] as bool,
+      updatedAt: fields[4] as DateTime?,
     );
   }
 
   @override
   void write(BinaryWriter writer, ScheduleProfile obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -35,7 +36,9 @@ class ScheduleProfileAdapter extends TypeAdapter<ScheduleProfile> {
       ..writeByte(2)
       ..write(obj.createdAt)
       ..writeByte(3)
-      ..write(obj.isDefault);
+      ..write(obj.isDefault)
+      ..writeByte(4)
+      ..write(obj.updatedAt);
   }
 
   @override

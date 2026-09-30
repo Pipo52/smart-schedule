@@ -1,8 +1,15 @@
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_ce/hive.dart';
 
 import '../models/schedule_exception.dart';
+import '../services/cloud_write_reporter.dart';
+import '../services/firestore_service.dart';
 import '../services/hive_service.dart';
+import '../services/schedule_widget_service.dart';
+import '../services/sync_clock.dart';
 
 class ScheduleExceptionProvider extends ChangeNotifier {
   ScheduleExceptionProvider({required String profileId})
@@ -12,6 +19,7 @@ class ScheduleExceptionProvider extends ChangeNotifier {
 
   final Box<ScheduleException> _box = HiveService.exceptionsBox;
   String _profileId;
+  String? _uid;
   List<ScheduleException> _exceptions = [];
   List<ScheduleException> _exceptionsView = const [];
   Set<String> _cancelledKeys = const {};
@@ -19,6 +27,12 @@ class ScheduleExceptionProvider extends ChangeNotifier {
   Map<String, List<ScheduleException>> _exceptionsByDate = const {};
 
   List<ScheduleException> get exceptions => _exceptionsView;
+
+  String? get _effectiveUid => _uid ?? FirebaseAuth.instance.currentUser?.uid;
+
+  void updateUid(String? uid) {
+    _uid = uid;
+  }
 
   void updateProfileId(String id) {
     if (_profileId == id) return;
@@ -52,6 +66,7 @@ class ScheduleExceptionProvider extends ChangeNotifier {
       for (final entry in byDate.entries)
         entry.key: List.unmodifiable(entry.value),
     };
+    unawaited(ScheduleWidgetService.refresh(_profileId));
   }
 
   static String _dateKey(DateTime date) =>
@@ -73,15 +88,32 @@ class ScheduleExceptionProvider extends ChangeNotifier {
       _exceptionsByDate[_dateKey(date)] ?? const [];
 
   Future<void> saveException(ScheduleException exception) async {
+    exception.updatedAt = SyncClock.now();
     await _box.put(exception.id, exception);
     _load();
     notifyListeners();
+    final uid = _effectiveUid;
+    if (uid != null) {
+      try {
+        await FirestoreService.instance.saveException(uid, exception);
+      } catch (e) {
+        CloudWriteReporter.instance.report(e);
+      }
+    }
   }
 
   Future<void> deleteException(String id) async {
     await _box.delete(id);
     _load();
     notifyListeners();
+    final uid = _effectiveUid;
+    if (uid != null) {
+      try {
+        await FirestoreService.instance.deleteException(uid, id);
+      } catch (e) {
+        CloudWriteReporter.instance.report(e);
+      }
+    }
   }
 
   /// Удаляет все исключения для конкретной пары (используется при удалении пары целиком).
@@ -92,6 +124,16 @@ class ScheduleExceptionProvider extends ChangeNotifier {
     }
     _load();
     notifyListeners();
+    final uid = _effectiveUid;
+    if (uid != null) {
+      for (final exception in toDelete) {
+        try {
+          await FirestoreService.instance.deleteException(uid, exception.id);
+        } catch (e) {
+          CloudWriteReporter.instance.report(e);
+        }
+      }
+    }
   }
 
   void reloadFromBox() {

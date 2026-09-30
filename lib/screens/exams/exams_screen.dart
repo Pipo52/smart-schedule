@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../l10n/generated/app_localizations.dart';
+import '../../models/exam.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/exam_provider.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/exam_tile.dart';
@@ -15,8 +17,9 @@ class ExamsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final examProvider = context.watch<ExamProvider>();
-    final exams = examProvider.exams;
+    final exams = context.select<ExamProvider, List<Exam>>(
+      (provider) => provider.exams,
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -26,20 +29,34 @@ class ExamsScreen extends StatelessWidget {
         ),
         title: Text(l10n.examsScreenTitle),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.of(context)
             .push(MaterialPageRoute(builder: (_) => const ExamFormScreen())),
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
+        label: Text(l10n.add),
       ),
-      body: exams.isEmpty
-          ? EmptyState(
-              icon: Icons.event_note_outlined,
-              title: l10n.emptyExamsTitle,
-              subtitle: l10n.emptyExamsSubtitle,
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: exams.length,
+      body: RefreshIndicator(
+        onRefresh: () => context.read<AuthProvider>().refreshFromCloud(),
+        child: exams.isEmpty
+            ? LayoutBuilder(
+                builder: (context, constraints) => SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints:
+                        BoxConstraints(minHeight: constraints.maxHeight),
+                    child: EmptyState(
+                      icon: Icons.event_note_outlined,
+                      title: l10n.emptyExamsTitle,
+                      subtitle: l10n.emptyExamsSubtitle,
+                    ),
+                  ),
+                ),
+              )
+            : ListView.builder(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(16),
+                itemCount: exams.length,
+                addAutomaticKeepAlives: false,
               itemBuilder: (context, index) {
                 final exam = exams[index];
                 return ExamTile(
@@ -70,12 +87,13 @@ class ExamsScreen extends StatelessWidget {
                       ),
                     );
                     if (confirmed == true && context.mounted) {
-                      await examProvider.deleteExam(exam.id);
+                      await context.read<ExamProvider>().deleteExam(exam.id);
                     }
                   },
                 );
               },
             ),
+      ),
     );
   }
 }

@@ -24,6 +24,7 @@ class Exam extends HiveObject {
     this.notes,
     List<String>? revisionTasks,
     required this.profileId,
+    this.updatedAt,
   }) : revisionTasks = revisionTasks ?? <String>[];
 
   @HiveField(0)
@@ -51,6 +52,9 @@ class Exam extends HiveObject {
   @HiveField(7, defaultValue: 'default')
   String profileId;
 
+  @HiveField(8)
+  DateTime? updatedAt;
+
   Exam copyWith({
     String? subjectName,
     DateTime? date,
@@ -59,6 +63,7 @@ class Exam extends HiveObject {
     String? notes,
     List<String>? revisionTasks,
     String? profileId,
+    DateTime? updatedAt,
   }) {
     return Exam(
       id: id,
@@ -69,6 +74,7 @@ class Exam extends HiveObject {
       notes: notes ?? this.notes,
       revisionTasks: revisionTasks ?? List<String>.from(this.revisionTasks),
       profileId: profileId ?? this.profileId,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }

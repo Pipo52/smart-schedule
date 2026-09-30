@@ -12,6 +12,8 @@ import '../../providers/semester_period_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/task_provider.dart';
 import '../../services/backup_service.dart';
+import '../../services/battery_optimization.dart';
+import '../../services/notification_service.dart';
 import 'gemini_api_key_tile.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -204,6 +206,12 @@ class SettingsScreen extends StatelessWidget {
               l10n.settingsMinutesBefore(current.defaultLessonReminderMinutes),
             ),
           ),
+          if (NotificationService.instance.reminderWindowEndingSoon)
+            ListTile(
+              leading: const Icon(Icons.notifications_paused_outlined),
+              title: Text(l10n.reminderWindowEnding),
+            ),
+          const _BatteryOptimizationTile(),
           const Divider(),
           _SectionLabel(l10n.settingsDataSection),
           ListTile(
@@ -325,6 +333,55 @@ class _SectionLabel extends StatelessWidget {
           fontWeight: FontWeight.bold,
         ),
       ),
+    );
+  }
+}
+
+class _BatteryOptimizationTile extends StatefulWidget {
+  const _BatteryOptimizationTile();
+
+  @override
+  State<_BatteryOptimizationTile> createState() =>
+      _BatteryOptimizationTileState();
+}
+
+class _BatteryOptimizationTileState extends State<_BatteryOptimizationTile>
+    with WidgetsBindingObserver {
+  bool _restricted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _refresh();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _refresh();
+  }
+
+  Future<void> _refresh() async {
+    final restricted = await BatteryOptimization.isRestricted();
+    if (!mounted) return;
+    setState(() => _restricted = restricted);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_restricted) return const SizedBox.shrink();
+    final l10n = AppLocalizations.of(context);
+    return ListTile(
+      leading: const Icon(Icons.battery_alert_outlined),
+      title: Text(l10n.settingsBatteryTitle),
+      subtitle: Text(l10n.settingsBatterySubtitle),
+      onTap: BatteryOptimization.openSettings,
     );
   }
 }

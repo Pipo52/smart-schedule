@@ -1,8 +1,13 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../models/app_settings.dart';
+import '../services/cloud_sync_service.dart';
+import '../services/cloud_write_reporter.dart';
+import '../services/firestore_service.dart';
 import '../services/hive_service.dart';
+import '../services/sync_clock.dart';
 import '../services/week_calculator.dart';
 
 /// Exposes [AppSettings] as observable state, and derives the current
@@ -12,10 +17,12 @@ class SettingsProvider extends ChangeNotifier {
     _loadGeminiApiKey();
   }
 
-  static const _geminiApiKeyStorageKey = 'gemini_api_key';
+  static const _geminiApiKeyStorageKey =
+      CloudSyncService.geminiApiKeyStorageKey;
   final _storage = const FlutterSecureStorage();
   AppSettings _settings;
   String? _geminiApiKey;
+  String? _uid;
 
   AppSettings get settings => _settings;
   String? get geminiApiKey => _geminiApiKey;
@@ -42,8 +49,30 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   Future<void> _persist() async {
+    _settings.updatedAt = SyncClock.now();
     await _settings.save();
     notifyListeners();
+    await pushToCloud();
+  }
+
+  void updateUid(String? uid) {
+    _uid = uid;
+  }
+
+  String? get _effectiveUid => _uid ?? FirebaseAuth.instance.currentUser?.uid;
+
+  Future<void> pushToCloud() async {
+    final uid = _effectiveUid;
+    if (uid == null) return;
+    try {
+      await FirestoreService.instance.saveSettings(
+        uid,
+        _settings,
+        geminiApiKey: _geminiApiKey,
+      );
+    } catch (e) {
+      CloudWriteReporter.instance.report(e);
+    }
   }
 
   Future<void> setManualWeekOverride(int? week) async {
@@ -90,15 +119,25 @@ class SettingsProvider extends ChangeNotifier {
     } else {
       await _storage.write(key: _geminiApiKeyStorageKey, value: key);
     }
+    await pushToCloud();
   }
 
   /// Wipes all data and resets settings to defaults.
   Future<void> resetAllData() async {
+    final uid = _effectiveUid;
+    if (uid != null) {
+      await FirestoreService.instance.deleteAll(uid);
+    }
     await HiveService.wipeAllData();
     await _storage.deleteAll();
     await HiveService.ensureDefaultProfile();
     _settings = HiveService.loadOrCreateSettings();
     _geminiApiKey = null;
+    if (uid != null) {
+      await CloudSyncService.instance.rememberOwner(uid);
+      await CloudSyncService.instance.recordWipeTimestamp(uid);
+      await CloudSyncService.instance.pushLocalToCloud(uid);
+    }
     notifyListeners();
   }
 

@@ -29,13 +29,14 @@ class LessonAdapter extends TypeAdapter<Lesson> {
       profileId: fields[11] == null ? 'default' : fields[11] as String,
       notes: fields[9] as String?,
       reminderEnabled: fields[10] == null ? true : fields[10] as bool,
+      updatedAt: fields[12] as DateTime?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Lesson obj) {
     writer
-      ..writeByte(12)
+      ..writeByte(13)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -59,7 +60,9 @@ class LessonAdapter extends TypeAdapter<Lesson> {
       ..writeByte(10)
       ..write(obj.reminderEnabled)
       ..writeByte(11)
-      ..write(obj.profileId);
+      ..write(obj.profileId)
+      ..writeByte(12)
+      ..write(obj.updatedAt);
   }
 
   @override

@@ -41,6 +41,7 @@ class Lesson extends HiveObject {
     required this.profileId,
     this.notes,
     this.reminderEnabled = true,
+    this.updatedAt,
   });
 
   @HiveField(0)
@@ -90,6 +91,9 @@ class Lesson extends HiveObject {
   @HiveField(11, defaultValue: 'default')
   String profileId;
 
+  @HiveField(12)
+  DateTime? updatedAt;
+
   int get startMinutes => _parseMinutesSinceMidnight(startTime);
 
   int get endMinutes => _parseMinutesSinceMidnight(endTime);
@@ -117,6 +121,7 @@ class Lesson extends HiveObject {
     String? profileId,
     String? notes,
     bool? reminderEnabled,
+    DateTime? updatedAt,
   }) {
     return Lesson(
       id: id,
@@ -131,6 +136,7 @@ class Lesson extends HiveObject {
       profileId: profileId ?? this.profileId,
       notes: notes ?? this.notes,
       reminderEnabled: reminderEnabled ?? this.reminderEnabled,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }

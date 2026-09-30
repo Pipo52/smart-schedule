@@ -1,10 +1,14 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/app_settings.dart';
 import '../models/schedule_profile.dart';
+import '../services/cloud_write_reporter.dart';
+import '../services/firestore_service.dart';
 import '../services/hive_service.dart';
+import '../services/sync_clock.dart';
 import '../services/notification_service.dart';
 import 'settings_provider.dart';
 
@@ -21,6 +25,7 @@ class ProfileProvider extends ChangeNotifier {
   final Box<ScheduleProfile> _box = HiveService.profilesBox;
   List<ScheduleProfile> _cachedProfiles = [];
   String _activeProfileId;
+  String? _uid;
 
   List<ScheduleProfile> get profiles => _cachedProfiles;
 
@@ -35,8 +40,17 @@ class ProfileProvider extends ChangeNotifier {
 
   void reloadFromBox() {
     _load();
+    if (!_box.containsKey(_activeProfileId)) {
+      _activeProfileId = _resolveInitialProfileId(_settings);
+    }
     notifyListeners();
   }
+
+  void updateUid(String? uid) {
+    _uid = uid;
+  }
+
+  String? get _effectiveUid => _uid ?? FirebaseAuth.instance.currentUser?.uid;
 
   void updateSettings(SettingsProvider settings) {
     if (_box.containsKey(_activeProfileId)) return;
@@ -78,6 +92,7 @@ class ProfileProvider extends ChangeNotifier {
     _activeProfileId = profileId;
     _settings.settings.lastOpenedProfileId = profileId;
     await _settings.settings.save();
+    await _settings.pushToCloud();
     if (changed) notifyListeners();
   }
 
@@ -92,10 +107,19 @@ class ProfileProvider extends ChangeNotifier {
       name: trimmedName,
       createdAt: DateTime.now(),
       isDefault: false,
+      updatedAt: SyncClock.now(),
     );
     await _box.put(profile.id, profile);
     _load();
     notifyListeners();
+    final uid = _effectiveUid;
+    if (uid != null) {
+      try {
+        await FirestoreService.instance.saveProfile(uid, profile);
+      } catch (e) {
+        CloudWriteReporter.instance.report(e);
+      }
+    }
     return profile;
   }
 
@@ -114,9 +138,18 @@ class ProfileProvider extends ChangeNotifier {
     }
 
     profile.name = trimmedName;
+    profile.updatedAt = SyncClock.now();
     await profile.save();
     _load();
     notifyListeners();
+    final uid = _effectiveUid;
+    if (uid != null) {
+      try {
+        await FirestoreService.instance.saveProfile(uid, profile);
+      } catch (e) {
+        CloudWriteReporter.instance.report(e);
+      }
+    }
   }
 
   Future<void> deleteProfile(String id) async {
@@ -177,10 +210,37 @@ class ProfileProvider extends ChangeNotifier {
       _activeProfileId = replacement.id;
       _settings.settings.lastOpenedProfileId = replacement.id;
       await _settings.settings.save();
+      await _settings.pushToCloud();
     }
 
     _load();
     notifyListeners();
+    final uid = _effectiveUid;
+    if (uid != null) {
+      try {
+        await FirestoreService.instance.deleteProfile(uid, id);
+        for (final lesson in lessons) {
+          await FirestoreService.instance.deleteLesson(uid, lesson.id);
+        }
+        for (final task in tasks) {
+          await FirestoreService.instance.deleteTask(uid, task.id);
+        }
+        for (final exam in exams) {
+          await FirestoreService.instance.deleteExam(uid, exam.id);
+        }
+        for (final exception in exceptions) {
+          await FirestoreService.instance.deleteException(uid, exception.id);
+        }
+        for (final period in periods) {
+          await FirestoreService.instance.deletePeriod(uid, period.id);
+        }
+        if (profile.isDefault) {
+          await FirestoreService.instance.saveProfile(uid, replacement);
+        }
+      } catch (e) {
+        CloudWriteReporter.instance.report(e);
+      }
+    }
   }
 
   Future<void> setDefaultProfile(String id) async {
@@ -197,5 +257,15 @@ class ProfileProvider extends ChangeNotifier {
     }
     _load();
     notifyListeners();
+    final uid = _effectiveUid;
+    if (uid != null) {
+      for (final profile in _box.values) {
+        try {
+          await FirestoreService.instance.saveProfile(uid, profile);
+        } catch (e) {
+          CloudWriteReporter.instance.report(e);
+        }
+      }
+    }
   }
 }

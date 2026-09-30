@@ -31,13 +31,14 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       startupBehavior: fields[8] == null
           ? StartupBehavior.lastOpened
           : fields[8] as StartupBehavior,
+      updatedAt: fields[9] as DateTime?,
     );
   }
 
   @override
   void write(BinaryWriter writer, AppSettings obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.semesterReferenceDate)
       ..writeByte(1)
@@ -53,7 +54,9 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       ..writeByte(7)
       ..write(obj.lastOpenedProfileId)
       ..writeByte(8)
-      ..write(obj.startupBehavior);
+      ..write(obj.startupBehavior)
+      ..writeByte(9)
+      ..write(obj.updatedAt);
   }
 
   @override

@@ -1,11 +1,16 @@
+import 'dart:async';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/lesson.dart';
 import '../../models/schedule_exception.dart';
+import '../../models/task.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/schedule_exception_provider.dart';
 import '../../providers/schedule_provider.dart';
 import '../../providers/settings_provider.dart';
@@ -13,6 +18,7 @@ import '../../providers/task_provider.dart';
 import '../../services/ai_parser_service.dart';
 import '../../utils/smart_import_utils.dart';
 import '../../utils/weekday_utils.dart';
+import '../../widgets/break_indicator.dart';
 import '../../widgets/day_selector.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/lesson_card.dart';
@@ -40,14 +46,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late int _selectedWeekday;
+  late String _localeCode;
   int? _previewWeek;
-  List<_LessonOccurrence> _effectiveLessons = const [];
-  DateTime _targetDateCached = DateTime.now();
-  int? _cachedWeekday;
-  int? _cachedPreviewWeek;
-  int? _cachedActualWeek;
-  List<Lesson>? _cachedSourceLessons;
-  List<ScheduleException>? _cachedExceptions;
 
   @override
   void initState() {
@@ -56,89 +56,32 @@ class _HomeScreenState extends State<HomeScreen> {
     _selectedWeekday = today >= 1 && today <= 6 ? today : 1;
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _localeCode = Localizations.localeOf(context).toString();
+  }
+
   /// Вычисляет конкретную календарную дату для выбранного дня недели и недели.
   DateTime _targetDate(int selectedWeekday, int previewWeek, int actualWeek) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final todayWeekday = now.weekday; // 1=Mon..7=Sun
     int dayDiff = selectedWeekday - todayWeekday;
-    // Если смотрим другую неделю — смещение на 7 дней.
     if (previewWeek != actualWeek) {
       dayDiff += 7;
     }
     return today.add(Duration(days: dayDiff));
   }
 
-  List<_LessonOccurrence> _computeEffectiveLessons({
-    required List<Lesson> lessons,
-    required ScheduleExceptionProvider exceptionProvider,
-    required DateTime targetDate,
-  }) {
-    final effectiveLessons = <_LessonOccurrence>[];
-    final dayExceptions = exceptionProvider.exceptionsForDate(targetDate);
-    for (final lesson in lessons) {
-      ScheduleException? cancellation;
-      for (final exception in dayExceptions) {
-        if (exception.lessonId == lesson.id &&
-            exception.type == ExceptionType.cancelled) {
-          cancellation = exception;
-          break;
-        }
-      }
-      effectiveLessons.add((
-        lesson: lesson,
-        cancellation: cancellation,
-        modification: exceptionProvider.getModification(lesson.id, targetDate),
-      ));
-    }
-    return effectiveLessons;
-  }
-
-  void _refreshEffectiveLessons() {
-    final settings = context.read<SettingsProvider>();
-    final schedule = context.read<ScheduleProvider>();
-    final exceptionProvider = context.read<ScheduleExceptionProvider>();
-    final actualWeek = settings.currentWeek;
-    final previewWeek = _previewWeek ?? actualWeek;
-    final lessons = schedule.lessonsForDay(
-      weekday: _selectedWeekday,
-      week: previewWeek,
-    );
-    final exceptions = exceptionProvider.exceptions;
-
-    if (_cachedWeekday == _selectedWeekday &&
-        _cachedPreviewWeek == previewWeek &&
-        _cachedActualWeek == actualWeek &&
-        identical(_cachedSourceLessons, lessons) &&
-        identical(_cachedExceptions, exceptions)) {
-      return;
-    }
-
-    _cachedWeekday = _selectedWeekday;
-    _cachedPreviewWeek = previewWeek;
-    _cachedActualWeek = actualWeek;
-    _cachedSourceLessons = lessons;
-    _cachedExceptions = exceptions;
-    _targetDateCached = _targetDate(_selectedWeekday, previewWeek, actualWeek);
-    _effectiveLessons = _computeEffectiveLessons(
-      lessons: lessons,
-      exceptionProvider: exceptionProvider,
-      targetDate: _targetDateCached,
-    );
-  }
-
   void _selectWeek(int week) {
-    setState(() {
-      _previewWeek = week;
-      _refreshEffectiveLessons();
-    });
+    HapticFeedback.selectionClick();
+    setState(() => _previewWeek = week);
   }
 
   void _selectWeekday(int weekday) {
-    setState(() {
-      _selectedWeekday = weekday;
-      _refreshEffectiveLessons();
-    });
+    HapticFeedback.selectionClick();
+    setState(() => _selectedWeekday = weekday);
   }
 
   void _showLessonActions(
@@ -313,8 +256,9 @@ class _HomeScreenState extends State<HomeScreen> {
       allowedExtensions: const ['pdf', 'png', 'jpg', 'jpeg'],
     );
     if (files.isEmpty || !mounted) return;
-    final path = files.first.path;
-    if (path == null) return;
+    final file = files.first;
+    final bytes = await file.readAsBytes();
+    if (!mounted) return;
 
     showDialog<void>(
       context: context,
@@ -336,10 +280,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     try {
-      final lessons = await AiParserService().parseScheduleFromFile(
-        path,
-        mimeTypeForPath(path),
-        apiKey,
+      final fileNameOrPath =
+          file.name.isNotEmpty ? file.name : (file.path ?? '');
+      final lessons = await AiParserService().parseScheduleFromBytes(
+        bytes: bytes,
+        mimeType: mimeTypeForPath(fileNameOrPath),
+        apiKey: apiKey,
       );
       if (!mounted) return;
       Navigator.of(context, rootNavigator: true).pop();
@@ -364,25 +310,16 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final settings = context.watch<SettingsProvider>();
-    context.watch<ScheduleProvider>();
-    final tasks = context.watch<TaskProvider>();
-    context.watch<ScheduleExceptionProvider>();
-    final localeCode = Localizations.localeOf(context).toString();
-
-    final actualWeek = settings.currentWeek;
-    final previewWeek = _previewWeek ?? actualWeek;
-
-    final todayWeekdayName = localizedWeekdayName(
-      DateTime.now().weekday <= 6 ? DateTime.now().weekday : 7,
-      localeCode,
+    final actualWeek = context.select<SettingsProvider, int>(
+      (settings) => settings.currentWeek,
     );
-
-    final dueTasks = tasks.dueTodayOrOverdue;
-    _refreshEffectiveLessons();
-    final targetDate = _targetDateCached;
-    final effectiveLessons = _effectiveLessons;
-    final lessons = _cachedSourceLessons ?? const <Lesson>[];
+    final previewWeek = _previewWeek ?? actualWeek;
+    final targetDate = _targetDate(_selectedWeekday, previewWeek, actualWeek);
+    final todayWeekday = DateTime.now().weekday;
+    final todayWeekdayName = localizedWeekdayName(
+      todayWeekday <= 6 ? todayWeekday : 7,
+      _localeCode,
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -396,8 +333,12 @@ class _HomeScreenState extends State<HomeScreen> {
         onPressed: _showAddOptions,
         child: const Icon(Icons.add),
       ),
-      body: CustomScrollView(
-        slivers: [
+      body: RefreshIndicator(
+        onRefresh: () => context.read<AuthProvider>().refreshFromCloud(),
+        child: CustomScrollView(
+          key: const Key('home_scroll_view'),
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
           SliverToBoxAdapter(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -440,43 +381,30 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 12),
                 DaySelector(
                   selectedWeekday: _selectedWeekday,
-                  localeCode: localeCode,
+                  localeCode: _localeCode,
                   onChanged: _selectWeekday,
                 ),
                 const SizedBox(height: 8),
               ],
             ),
           ),
-          if (lessons.isEmpty)
-            SliverToBoxAdapter(
-              child: EmptyState(
-                icon: Icons.free_breakfast_outlined,
-                title: l10n.emptyLessonsTitle,
-                subtitle: l10n.emptyLessonsSubtitle,
-              ),
-            )
-          else
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  final entry = effectiveLessons[index];
-                  return _LessonOccurrenceTile(
-                    entry: entry,
-                    cancelledLabel: l10n.cancelledBadge,
-                    modifiedLabel: l10n.modifiedBadge,
-                    onOpenActions: () {
-                      final cancellation = entry.cancellation;
-                      if (cancellation != null) {
-                        _showRestoreCancelledLesson(context, cancellation);
-                      } else {
-                        _showLessonActions(context, entry.lesson, targetDate);
-                      }
-                    },
-                  );
-                }, childCount: effectiveLessons.length),
-              ),
-            ),
+          _HomeLessonsSliver(
+            weekday: _selectedWeekday,
+            week: previewWeek,
+            targetDate: targetDate,
+            cancelledLabel: l10n.cancelledBadge,
+            modifiedLabel: l10n.modifiedBadge,
+            emptyTitle: l10n.emptyLessonsTitle,
+            emptySubtitle: l10n.emptyLessonsSubtitle,
+            onOpenActions: (entry) {
+              final cancellation = entry.cancellation;
+              if (cancellation != null) {
+                _showRestoreCancelledLesson(context, cancellation);
+              } else {
+                _showLessonActions(context, entry.lesson, targetDate);
+              }
+            },
+          ),
           SliverToBoxAdapter(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -493,31 +421,15 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          if (dueTasks.isEmpty)
-            SliverToBoxAdapter(
-              child: EmptyState(
-                icon: Icons.check_circle_outline,
-                title: l10n.emptyTasksTitle,
-                subtitle: l10n.emptyTasksSubtitle,
-              ),
-            )
-          else
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  final task = dueTasks[index];
-                  return TaskTile(
-                    task: task,
-                    onToggleDone: () => tasks.toggleDone(task),
-                  );
-                }, childCount: dueTasks.length),
-              ),
-            ),
+          _HomeTasksSliver(
+            emptyTitle: l10n.emptyTasksTitle,
+            emptySubtitle: l10n.emptyTasksSubtitle,
+          ),
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ],
       ),
-    );
+    ),
+  );
   }
 }
 
@@ -527,57 +439,409 @@ class _LessonOccurrenceTile extends StatelessWidget {
     required this.cancelledLabel,
     required this.modifiedLabel,
     required this.onOpenActions,
+    this.isCurrent = false,
+    this.remainingMinutes,
+    this.progress,
   });
 
   final _LessonOccurrence entry;
   final String cancelledLabel;
   final String modifiedLabel;
   final VoidCallback onOpenActions;
+  final bool isCurrent;
+  final int? remainingMinutes;
+  final double? progress;
+
+  static const Color _lectureColor = Color(0xFF3B82F6);
+  static const Color _practicalColor = Color(0xFF22A06B);
+  static const Color _labColor = Color(0xFFF97316);
 
   @override
   Widget build(BuildContext context) {
-    final lesson = entry.modification != null
-        ? entry.lesson.copyWith(
-            startTime: entry.modification!.newStartTime,
-            endTime: entry.modification!.newEndTime,
-            room: entry.modification!.newRoom,
-            lecturer: entry.modification!.newLecturer,
-            notes: entry.modification!.newNotes,
-          )
-        : entry.lesson;
-
+    final lesson = _resolveEffectiveLesson(entry);
     final isCancelled = entry.cancellation != null;
-    return Opacity(
-      opacity: isCancelled ? 0.4 : 1.0,
-      child: Stack(
-        children: [
-          LessonCard(lesson: lesson, onTap: onOpenActions),
-          if (isCancelled)
-            Positioned(
-              top: 8,
-              right: 12,
-              child: Chip(
-                label: Text(cancelledLabel),
-                labelStyle: const TextStyle(fontSize: 11),
-                padding: EdgeInsets.zero,
-                visualDensity: VisualDensity.compact,
-              ),
+    final isModified = entry.modification != null && !isCancelled;
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+
+    String? remainingText;
+    if (isCurrent && remainingMinutes != null && remainingMinutes! > 0) {
+      if (remainingMinutes! < 60) {
+        remainingText = l10n.lessonTimeRemaining(remainingMinutes!);
+      } else {
+        final hours = remainingMinutes! ~/ 60;
+        final mins = remainingMinutes! % 60;
+        remainingText = mins == 0
+            ? l10n.lessonTimeRemainingHoursOnly(hours)
+            : l10n.lessonTimeRemainingHours(hours, mins);
+      }
+    }
+
+    final typeColor = switch (lesson.type) {
+      LessonType.lecture => _lectureColor,
+      LessonType.practical => _practicalColor,
+      LessonType.laboratory => _labColor,
+    };
+
+    final badges = <Widget>[];
+
+    if (isCancelled) {
+      badges.add(
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.errorContainer,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            cancelledLabel,
+            style: theme.textTheme.labelSmall?.copyWith(
+              fontSize: 10,
+              color: theme.colorScheme.onErrorContainer,
+              fontWeight: FontWeight.w600,
             ),
-          if (entry.modification != null && !isCancelled)
-            Positioned(
-              top: 8,
-              right: 12,
-              child: Chip(
-                label: Text(modifiedLabel),
-                labelStyle: const TextStyle(fontSize: 11),
-                padding: EdgeInsets.zero,
-                visualDensity: VisualDensity.compact,
-                backgroundColor: Theme.of(context)
-                    .colorScheme
-                    .tertiaryContainer,
-              ),
+          ),
+        ),
+      );
+    } else if (isModified) {
+      badges.add(
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.tertiaryContainer,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            modifiedLabel,
+            style: theme.textTheme.labelSmall?.copyWith(
+              fontSize: 10,
+              color: theme.colorScheme.onTertiaryContainer,
+              fontWeight: FontWeight.w600,
             ),
-        ],
+          ),
+        ),
+      );
+    }
+
+    if (remainingText != null) {
+      badges.add(
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+          decoration: BoxDecoration(
+            color: typeColor.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: typeColor.withValues(alpha: 0.35),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: typeColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                remainingText,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: typeColor,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 11,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final Widget? trailingBadge = badges.isEmpty
+        ? null
+        : Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (var i = 0; i < badges.length; i++) ...[
+                if (i > 0) const SizedBox(width: 5),
+                badges[i],
+              ],
+            ],
+          );
+
+    return LessonCard(
+      lesson: lesson,
+      onTap: onOpenActions,
+      faded: isCancelled,
+      isCurrent: isCurrent,
+      progress: progress,
+      trailingBadge: trailingBadge,
+    );
+  }
+}
+
+bool _sameCalendarDay(DateTime a, DateTime b) =>
+    a.year == b.year && a.month == b.month && a.day == b.day;
+
+List<_LessonOccurrence> _occurrencesFor({
+  required List<Lesson> lessons,
+  required List<ScheduleException> exceptions,
+  required DateTime targetDate,
+}) {
+  final dayExceptions = <ScheduleException>[];
+  for (final exception in exceptions) {
+    if (_sameCalendarDay(exception.date, targetDate)) {
+      dayExceptions.add(exception);
+    }
+  }
+
+  final effective = <_LessonOccurrence>[];
+  for (final lesson in lessons) {
+    ScheduleException? cancellation;
+    ScheduleException? modification;
+    for (final exception in dayExceptions) {
+      if (exception.lessonId != lesson.id) continue;
+      if (exception.type == ExceptionType.cancelled) {
+        cancellation = exception;
+      } else if (exception.type == ExceptionType.modified) {
+        modification = exception;
+      }
+    }
+    effective.add((
+      lesson: lesson,
+      cancellation: cancellation,
+      modification: modification,
+    ));
+  }
+  return effective;
+}
+
+sealed class _ScheduleTimelineItem {
+  const _ScheduleTimelineItem();
+}
+
+class _LessonTimelineItem extends _ScheduleTimelineItem {
+  const _LessonTimelineItem(this.entry);
+  final _LessonOccurrence entry;
+}
+
+class _BreakTimelineItem extends _ScheduleTimelineItem {
+  const _BreakTimelineItem(this.durationMinutes);
+  final int durationMinutes;
+}
+
+Lesson _resolveEffectiveLesson(_LessonOccurrence entry) {
+  final mod = entry.modification;
+  if (mod == null) return entry.lesson;
+  return entry.lesson.copyWith(
+    startTime: mod.newStartTime,
+    endTime: mod.newEndTime,
+    room: mod.newRoom,
+    lecturer: mod.newLecturer,
+    notes: mod.newNotes,
+  );
+}
+
+List<_ScheduleTimelineItem> _buildTimeline(List<_LessonOccurrence> occurrences) {
+  if (occurrences.isEmpty) return const [];
+  final items = <_ScheduleTimelineItem>[];
+  for (var i = 0; i < occurrences.length; i++) {
+    final currentEntry = occurrences[i];
+    items.add(_LessonTimelineItem(currentEntry));
+
+    if (i < occurrences.length - 1) {
+      final nextEntry = occurrences[i + 1];
+      final currentLesson = _resolveEffectiveLesson(currentEntry);
+      final nextLesson = _resolveEffectiveLesson(nextEntry);
+
+      final breakMinutes = nextLesson.startMinutes - currentLesson.endMinutes;
+      if (breakMinutes > 0) {
+        items.add(_BreakTimelineItem(breakMinutes));
+      }
+    }
+  }
+  return items;
+}
+
+class _HomeLessonsSliver extends StatefulWidget {
+  const _HomeLessonsSliver({
+    required this.weekday,
+    required this.week,
+    required this.targetDate,
+    required this.cancelledLabel,
+    required this.modifiedLabel,
+    required this.emptyTitle,
+    required this.emptySubtitle,
+    required this.onOpenActions,
+  });
+
+  final int weekday;
+  final int week;
+  final DateTime targetDate;
+  final String cancelledLabel;
+  final String modifiedLabel;
+  final String emptyTitle;
+  final String emptySubtitle;
+  final ValueChanged<_LessonOccurrence> onOpenActions;
+
+  @override
+  State<_HomeLessonsSliver> createState() => _HomeLessonsSliverState();
+}
+
+class _HomeLessonsSliverState extends State<_HomeLessonsSliver> {
+  Timer? _ticker;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTickerIfNeeded();
+  }
+
+  @override
+  void didUpdateWidget(_HomeLessonsSliver oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!_sameCalendarDay(widget.targetDate, oldWidget.targetDate)) {
+      _startTickerIfNeeded();
+    }
+  }
+
+  void _startTickerIfNeeded() {
+    _ticker?.cancel();
+    if (_sameCalendarDay(widget.targetDate, DateTime.now())) {
+      _ticker = Timer.periodic(const Duration(seconds: 30), (_) {
+        if (mounted) setState(() {});
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final lessons = context.select<ScheduleProvider, List<Lesson>>(
+      (schedule) => schedule.lessonsForDay(
+        weekday: widget.weekday,
+        week: widget.week,
+      ),
+    );
+    final exceptions = context
+        .select<ScheduleExceptionProvider, List<ScheduleException>>(
+          (provider) => provider.exceptions,
+        );
+    if (lessons.isEmpty) {
+      return SliverToBoxAdapter(
+        child: EmptyState(
+          icon: Icons.free_breakfast_outlined,
+          title: widget.emptyTitle,
+          subtitle: widget.emptySubtitle,
+        ),
+      );
+    }
+
+    final effectiveLessons = _occurrencesFor(
+      lessons: lessons,
+      exceptions: exceptions,
+      targetDate: widget.targetDate,
+    );
+    final timelineItems = _buildTimeline(effectiveLessons);
+
+    final now = DateTime.now();
+    final isToday = _sameCalendarDay(widget.targetDate, now);
+    final nowMinutes = now.hour * 60 + now.minute;
+
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            final item = timelineItems[index];
+            return switch (item) {
+              _LessonTimelineItem(:final entry) => () {
+                  final lesson = _resolveEffectiveLesson(entry);
+                  final isCancelled = entry.cancellation != null;
+                  final isCurrent = isToday &&
+                      !isCancelled &&
+                      nowMinutes >= lesson.startMinutes &&
+                      nowMinutes < lesson.endMinutes;
+                  final remainingMinutes = isCurrent
+                      ? lesson.endMinutes - nowMinutes
+                      : null;
+                  final totalDuration = lesson.endMinutes - lesson.startMinutes;
+                  final progress = isCurrent && totalDuration > 0
+                      ? ((nowMinutes - lesson.startMinutes) / totalDuration)
+                          .clamp(0.0, 1.0)
+                      : null;
+
+                  return _LessonOccurrenceTile(
+                    entry: entry,
+                    cancelledLabel: widget.cancelledLabel,
+                    modifiedLabel: widget.modifiedLabel,
+                    isCurrent: isCurrent,
+                    remainingMinutes: remainingMinutes,
+                    progress: progress,
+                    onOpenActions: () => widget.onOpenActions(entry),
+                  );
+                }(),
+              _BreakTimelineItem(:final durationMinutes) => BreakIndicator(
+                  durationMinutes: durationMinutes,
+                ),
+            };
+          },
+          childCount: timelineItems.length,
+          addAutomaticKeepAlives: false,
+          addRepaintBoundaries: false,
+        ),
+      ),
+    );
+  }
+}
+
+class _HomeTasksSliver extends StatelessWidget {
+  const _HomeTasksSliver({
+    required this.emptyTitle,
+    required this.emptySubtitle,
+  });
+
+  final String emptyTitle;
+  final String emptySubtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    final dueTasks = context.select<TaskProvider, List<Task>>(
+      (tasks) => tasks.dueTodayOrOverdue,
+    );
+    if (dueTasks.isEmpty) {
+      return SliverToBoxAdapter(
+        child: EmptyState(
+          icon: Icons.check_circle_outline,
+          title: emptyTitle,
+          subtitle: emptySubtitle,
+        ),
+      );
+    }
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            final task = dueTasks[index];
+            return TaskTile(
+              task: task,
+              onToggleDone: () => context.read<TaskProvider>().toggleDone(task),
+            );
+          },
+          childCount: dueTasks.length,
+          addAutomaticKeepAlives: false,
+          addRepaintBoundaries: false,
+        ),
       ),
     );
   }

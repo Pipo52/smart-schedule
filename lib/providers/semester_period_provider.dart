@@ -1,8 +1,12 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_ce/hive.dart';
 
 import '../models/semester_period.dart';
+import '../services/cloud_write_reporter.dart';
+import '../services/firestore_service.dart';
 import '../services/hive_service.dart';
+import '../services/sync_clock.dart';
 
 class SemesterPeriodProvider extends ChangeNotifier {
   SemesterPeriodProvider({required String profileId}) : _profileId = profileId {
@@ -11,12 +15,19 @@ class SemesterPeriodProvider extends ChangeNotifier {
 
   final Box<SemesterPeriod> _box = HiveService.periodsBox;
   String _profileId;
+  String? _uid;
   List<SemesterPeriod> _periods = [];
   List<SemesterPeriod> _periodsView = const [];
   Map<int, SemesterPeriodType> _typeByDay = const {};
   Map<int, Color> _colorByDay = const {};
 
   List<SemesterPeriod> get periods => _periodsView;
+
+  void updateUid(String? uid) {
+    _uid = uid;
+  }
+
+  String? get _effectiveUid => _uid ?? FirebaseAuth.instance.currentUser?.uid;
 
   void updateProfileId(String id) {
     if (_profileId == id) return;
@@ -72,15 +83,32 @@ class SemesterPeriodProvider extends ChangeNotifier {
   Color? colorForDate(DateTime date) => _colorByDay[_dayKey(date)];
 
   Future<void> savePeriod(SemesterPeriod period) async {
+    period.updatedAt = SyncClock.now();
     await _box.put(period.id, period);
     _load();
     notifyListeners();
+    final uid = _effectiveUid;
+    if (uid != null) {
+      try {
+        await FirestoreService.instance.savePeriod(uid, period);
+      } catch (e) {
+        CloudWriteReporter.instance.report(e);
+      }
+    }
   }
 
   Future<void> deletePeriod(String id) async {
     await _box.delete(id);
     _load();
     notifyListeners();
+    final uid = _effectiveUid;
+    if (uid != null) {
+      try {
+        await FirestoreService.instance.deletePeriod(uid, id);
+      } catch (e) {
+        CloudWriteReporter.instance.report(e);
+      }
+    }
   }
 
   void reloadFromBox() {

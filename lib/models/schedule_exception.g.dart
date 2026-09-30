@@ -27,13 +27,14 @@ class ScheduleExceptionAdapter extends TypeAdapter<ScheduleException> {
       newRoom: fields[7] as String?,
       newLecturer: fields[8] as String?,
       newNotes: fields[9] as String?,
+      updatedAt: fields[10] as DateTime?,
     );
   }
 
   @override
   void write(BinaryWriter writer, ScheduleException obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -53,7 +54,9 @@ class ScheduleExceptionAdapter extends TypeAdapter<ScheduleException> {
       ..writeByte(8)
       ..write(obj.newLecturer)
       ..writeByte(9)
-      ..write(obj.newNotes);
+      ..write(obj.newNotes)
+      ..writeByte(10)
+      ..write(obj.updatedAt);
   }
 
   @override

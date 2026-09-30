@@ -9,6 +9,7 @@ class ScheduleProfile extends HiveObject {
     required this.name,
     required this.createdAt,
     required this.isDefault,
+    this.updatedAt,
   });
 
   @HiveField(0)
@@ -23,17 +24,22 @@ class ScheduleProfile extends HiveObject {
   @HiveField(3)
   bool isDefault;
 
+  @HiveField(4)
+  DateTime? updatedAt;
+
   ScheduleProfile copyWith({
     String? id,
     String? name,
     DateTime? createdAt,
     bool? isDefault,
+    DateTime? updatedAt,
   }) {
     return ScheduleProfile(
       id: id ?? this.id,
       name: name ?? this.name,
       createdAt: createdAt ?? this.createdAt,
       isDefault: isDefault ?? this.isDefault,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }

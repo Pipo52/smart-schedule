@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/task.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/task_provider.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/section_header.dart';
@@ -39,14 +40,28 @@ class TasksScreen extends StatefulWidget {
 
 class _TasksScreenState extends State<TasksScreen> {
   _SortMode _sortMode = _SortMode.date;
+  List<Task>? _cachedTasks;
+  _SortMode? _cachedSortMode;
+  String? _cachedLocale;
+  int? _cachedDay;
+  List<_TasksRow> _cachedRows = const [];
 
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final taskProvider = context.watch<TaskProvider>();
-    final tasks = List<Task>.from(taskProvider.tasks);
+  List<_TasksRow> _computeRows({
+    required List<Task> sourceTasks,
+    required _SortMode sortMode,
+    required AppLocalizations l10n,
+    required String localeCode,
+  }) {
+    final now = DateTime.now();
+    if (identical(_cachedTasks, sourceTasks) &&
+        _cachedSortMode == sortMode &&
+        _cachedLocale == localeCode &&
+        _cachedDay == now.day) {
+      return _cachedRows;
+    }
 
-    if (_sortMode == _SortMode.priority) {
+    final tasks = List<Task>.from(sourceTasks);
+    if (sortMode == _SortMode.priority) {
       tasks.sort((a, b) {
         final byPriority = b.priority.index.compareTo(a.priority.index);
         return byPriority != 0 ? byPriority : a.dueDate.compareTo(b.dueDate);
@@ -55,7 +70,6 @@ class _TasksScreenState extends State<TasksScreen> {
       tasks.sort((a, b) => a.dueDate.compareTo(b.dueDate));
     }
 
-    final now = DateTime.now();
     final startOfToday = DateTime(now.year, now.month, now.day);
     final endOfToday = startOfToday.add(const Duration(days: 1));
     final endOfWeek = startOfToday.add(const Duration(days: 7));
@@ -100,6 +114,27 @@ class _TasksScreenState extends State<TasksScreen> {
       rows.add(const _TasksRow.spacer());
     }
 
+    _cachedTasks = sourceTasks;
+    _cachedSortMode = sortMode;
+    _cachedLocale = localeCode;
+    _cachedDay = now.day;
+    _cachedRows = rows;
+
+    return rows;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final localeCode = Localizations.localeOf(context).toString();
+    final tasks = context.select<TaskProvider, List<Task>>((p) => p.tasks);
+    final rows = _computeRows(
+      sourceTasks: tasks,
+      sortMode: _sortMode,
+      l10n: l10n,
+      localeCode: localeCode,
+    );
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -125,19 +160,33 @@ class _TasksScreenState extends State<TasksScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.of(context)
             .push(MaterialPageRoute(builder: (_) => const TaskFormScreen())),
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
+        label: Text(l10n.add),
       ),
-      body: rows.isEmpty
-          ? EmptyState(
-              icon: Icons.checklist_outlined,
-              title: l10n.emptyTasksTitle,
-              subtitle: l10n.emptyTasksSubtitle,
-            )
-          : ListView.builder(
-              itemCount: rows.length,
+      body: RefreshIndicator(
+        onRefresh: () => context.read<AuthProvider>().refreshFromCloud(),
+        child: rows.isEmpty
+            ? LayoutBuilder(
+                builder: (context, constraints) => SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints:
+                        BoxConstraints(minHeight: constraints.maxHeight),
+                    child: EmptyState(
+                      icon: Icons.checklist_outlined,
+                      title: l10n.emptyTasksTitle,
+                      subtitle: l10n.emptyTasksSubtitle,
+                    ),
+                  ),
+                ),
+              )
+            : ListView.builder(
+                physics: const AlwaysScrollableScrollPhysics(),
+                itemCount: rows.length,
+                addAutomaticKeepAlives: false,
               itemBuilder: (context, index) {
                 final row = rows[index];
                 switch (row.kind) {
@@ -151,7 +200,8 @@ class _TasksScreenState extends State<TasksScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: TaskTile(
                         task: task,
-                        onToggleDone: () => taskProvider.toggleDone(task),
+                        onToggleDone: () =>
+                            context.read<TaskProvider>().toggleDone(task),
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => TaskFormScreen(task: task),
@@ -178,7 +228,7 @@ class _TasksScreenState extends State<TasksScreen> {
                             ),
                           );
                           if (confirmed == true && context.mounted) {
-                            await taskProvider.deleteTask(task.id);
+                            await context.read<TaskProvider>().deleteTask(task.id);
                           }
                         },
                       ),
@@ -186,6 +236,7 @@ class _TasksScreenState extends State<TasksScreen> {
                 }
               },
             ),
+      ),
     );
   }
 }

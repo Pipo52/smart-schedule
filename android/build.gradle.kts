@@ -1,5 +1,6 @@
 allprojects {
     repositories {
+        maven("https://storage.googleapis.com/download.flutter.io")
         google()
         mavenCentral()
     }

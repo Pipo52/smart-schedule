@@ -33,6 +33,7 @@ class AppSettings extends HiveObject {
     this.schemaVersion = 2,
     this.lastOpenedProfileId,
     this.startupBehavior = StartupBehavior.lastOpened,
+    this.updatedAt,
   });
 
   /// Monday of the week containing September 1st of the current academic
@@ -67,4 +68,7 @@ class AppSettings extends HiveObject {
 
   @HiveField(8)
   StartupBehavior startupBehavior;
+
+  @HiveField(9)
+  DateTime? updatedAt;
 }

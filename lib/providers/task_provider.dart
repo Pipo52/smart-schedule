@@ -1,8 +1,14 @@
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_ce/hive.dart';
 
 import '../models/task.dart';
+import '../services/cloud_write_reporter.dart';
+import '../services/firestore_service.dart';
 import '../services/hive_service.dart';
+import '../services/sync_clock.dart';
 import '../services/notification_service.dart';
 
 class TaskProvider extends ChangeNotifier {
@@ -11,6 +17,7 @@ class TaskProvider extends ChangeNotifier {
   }
 
   String _profileId;
+  String? _uid;
   final Box<Task> _box = HiveService.tasksBox;
   List<Task> _tasks = <Task>[];
   List<Task> _tasksView = const [];
@@ -56,6 +63,12 @@ class TaskProvider extends ChangeNotifier {
     };
   }
 
+  void updateUid(String? uid) {
+    _uid = uid;
+  }
+
+  String? get _effectiveUid => _uid ?? FirebaseAuth.instance.currentUser?.uid;
+
   void updateProfileId(String id) {
     if (_profileId == id) return;
     _profileId = id;
@@ -70,6 +83,7 @@ class TaskProvider extends ChangeNotifier {
 
   Future<void> saveTask(Task task) async {
     task.profileId = _profileId;
+    task.updatedAt = SyncClock.now();
     await _box.put(task.id, task);
     _load();
     notifyListeners();
@@ -78,6 +92,14 @@ class TaskProvider extends ChangeNotifier {
     } else {
       await NotificationService.instance.cancelTaskNotification(task.id);
     }
+    final uid = _effectiveUid;
+    if (uid != null) {
+      try {
+        await FirestoreService.instance.saveTask(uid, task);
+      } catch (e) {
+        CloudWriteReporter.instance.report(e);
+      }
+    }
   }
 
   Future<void> deleteTask(String id) async {
@@ -85,10 +107,19 @@ class TaskProvider extends ChangeNotifier {
     await _box.delete(id);
     _load();
     notifyListeners();
+    final uid = _effectiveUid;
+    if (uid != null) {
+      try {
+        await FirestoreService.instance.deleteTask(uid, id);
+      } catch (e) {
+        CloudWriteReporter.instance.report(e);
+      }
+    }
   }
 
   Future<void> toggleDone(Task task) async {
     task.isDone = !task.isDone;
+    task.updatedAt = SyncClock.now();
     await task.save();
     if (task.isDone) {
       await NotificationService.instance.cancelTaskNotification(task.id);
@@ -97,11 +128,27 @@ class TaskProvider extends ChangeNotifier {
     }
     _load();
     notifyListeners();
+    final uid = _effectiveUid;
+    if (uid != null) {
+      try {
+        await FirestoreService.instance.saveTask(uid, task);
+      } catch (e) {
+        CloudWriteReporter.instance.report(e);
+      }
+    }
   }
 
-  /// Re-reads tasks from the box (used right after an import).
   void reloadFromBox() {
     _load();
     notifyListeners();
+    unawaited(_rescheduleNotifications());
+  }
+
+  Future<void> _rescheduleNotifications() async {
+    for (final task in _pending) {
+      if (task.reminderOffsetMinutes != null) {
+        await NotificationService.instance.scheduleTaskNotification(task);
+      }
+    }
   }
 }

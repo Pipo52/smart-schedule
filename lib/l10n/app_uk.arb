@@ -221,5 +221,22 @@
   "settingsSignedInAs": "Ви увійшли як {email}",
   "settingsSignOut": "Вийти з акаунта",
   "authOrDivider": "АБО",
-  "authSignInWithGoogle": "Увійти через Google"
+  "authSignInWithGoogle": "Увійти через Google",
+  "breakShort": "Перерва {minutes} хв",
+  "breakLong": "Вікно {hours} год {minutes} хв",
+  "breakHoursOnly": "Вікно {hours} год",
+  "lessonTimeRemaining": "До кінця: {minutes} хв",
+  "lessonTimeRemainingHours": "До кінця: {hours} год {minutes} хв",
+  "lessonTimeRemainingHoursOnly": "До кінця: {hours} год",
+  "cloudSaveFailed": "Не збереглося в хмару, спробуйте ще раз",
+  "cloudOutOfDate": "Поки не в хмарі. Зміни залишаться на цьому пристрої до наступної синхронізації.",
+  "reminderWindowEnding": "Нагадування про пари скоро закінчаться. Відкрийте застосунок, щоб оновити їх.",
+  "settingsBatteryTitle": "Дозволити нагадування у фоні",
+  "settingsBatterySubtitle": "Економія батареї може зупинити будильник пари. Вимкніть оптимізацію для Smart Schedule.",
+  "widgetEmpty": "Найближчих пар немає",
+  "widgetNow": "Зараз",
+  "widgetToday": "Сьогодні",
+  "widgetTomorrow": "Завтра",
+  "widgetNext": "Далі"
 }
+
