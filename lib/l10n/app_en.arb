@@ -146,6 +146,24 @@
   "languageUkrainian": "Українська",
   "languageRussian": "Русский",
 
+  "settingsMoodleSection": "Moodle",
+  "settingsMoodleUrl": "Calendar link",
+  "settingsMoodleUrlHint": "https://…/calendar/export_execute.php?…",
+  "settingsMoodleHelp": "In Moodle open Calendar → Export calendar and paste the link. Assignment names and due dates become tasks. The files stay on the assignment page; its link is saved in the task.",
+  "settingsMoodleSaved": "Moodle link saved",
+  "settingsMoodleLoad": "Load assignments",
+  "settingsMoodleEmpty": "No assignment deadlines were found in this calendar.",
+  "settingsMoodleResult": "Added {added}, updated {updated}",
+  "@settingsMoodleResult": {
+    "placeholders": {
+      "added": {"type": "int"},
+      "updated": {"type": "int"}
+    }
+  },
+  "settingsMoodleErrorHttps": "The link has to start with https.",
+  "settingsMoodleErrorNetwork": "Couldn't download the calendar. Check the link and your connection.",
+  "settingsMoodleErrorStatus": "Moodle refused the link. Create a new calendar link and try again.",
+
   "settingsAiSection": "AI features",
   "settingsGeminiApiKey": "Gemini API key",
   "settingsGeminiApiKeyHint": "Paste your API key",
@@ -320,7 +338,10 @@
     }
   },
   "cloudSaveFailed": "Couldn't save to the cloud. Try again.",
-  "cloudOutOfDate": "Not in the cloud yet. Changes stay on this device until the next sync.",
+  "cloudOutOfDate": "Not in the cloud yet. These changes are still on this device.",
+  "cloudSendNow": "Send now",
+  "settingsUploadToCloud": "Send to the cloud",
+  "settingsUploadToCloudSubtitle": "Sends changes that are still only on this device.",
   "reminderWindowEnding": "Lesson reminders run out soon. Open the app to refresh them.",
   "settingsBatteryTitle": "Let reminders run in the background",
   "settingsBatterySubtitle": "Battery saving on this phone can stop lesson alarms. Turn off optimization for Smart Schedule.",

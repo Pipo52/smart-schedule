@@ -16,6 +16,8 @@ class AuthProvider extends ChangeNotifier {
       _syncEpoch++;
       notifyListeners();
     };
+    CloudWriteReporter.instance.onAutoRetry = () =>
+        sendToCloud(automatic: true);
     _authSub = _auth.authStateChanges().listen((User? user) async {
       final ticket = ++_authTicket;
       if (user == null) {
@@ -38,6 +40,7 @@ class AuthProvider extends ChangeNotifier {
       } catch (_) {
         if (ticket != _authTicket) return;
         _isSynced = false;
+        CloudWriteReporter.instance.markOutOfDate();
       } finally {
         if (ticket == _authTicket) {
           _isSyncing = false;
@@ -69,11 +72,42 @@ class AuthProvider extends ChangeNotifier {
 
   bool get isSynced => _isSynced;
 
+  bool _cloudBusy = false;
+
+  /// Sends failed writes again. A full download runs only when the last sync
+  /// itself failed, or when [force] is set from settings.
+  Future<void> sendToCloud({bool force = false, bool automatic = false}) async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null || _cloudBusy) return;
+    _cloudBusy = true;
+    if (!automatic) {
+      _isSyncing = true;
+      notifyListeners();
+    }
+    try {
+      await CloudSyncService.instance.retryPendingWrites(uid);
+      final stillQueued = CloudWriteReporter.instance.queued.isNotEmpty;
+      if (stillQueued && !force) return;
+      if (force || !_isSynced) {
+        await CloudSyncService.instance.pullFromCloud(uid, replaceEmpty: true);
+        CloudWriteReporter.instance.clearPending();
+        _isSynced = true;
+        _syncEpoch++;
+      }
+    } catch (_) {
+      _isSynced = false;
+    } finally {
+      _cloudBusy = false;
+      if (!automatic) _isSyncing = false;
+      notifyListeners();
+    }
+  }
+
   /// Downloads the current cloud copy again. Used when the app returns
   /// to the foreground and a snapshot may have been missed.
   Future<void> refreshFromCloud() async {
     final uid = _auth.currentUser?.uid;
-    if (uid == null) return;
+    if (uid == null || _cloudBusy) return;
     if (CloudSyncService.shouldSkipResumePull(
       lastPullAt: CloudSyncService.instance.lastPullAt,
       now: DateTime.now(),
@@ -89,6 +123,7 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
     } catch (_) {
       _isSynced = false;
+      CloudWriteReporter.instance.markOutOfDate();
       notifyListeners();
     }
   }

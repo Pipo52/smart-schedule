@@ -362,6 +362,44 @@ class AppLocalizationsUk extends AppLocalizations {
   String get languageRussian => 'Русский';
 
   @override
+  String get settingsMoodleSection => 'Moodle';
+
+  @override
+  String get settingsMoodleUrl => 'Посилання на календар';
+
+  @override
+  String get settingsMoodleUrlHint => 'https://…/calendar/export_execute.php?…';
+
+  @override
+  String get settingsMoodleHelp =>
+      'У Moodle відкрийте Календар → Експорт календаря і вставте посилання. Назви завдань і терміни стануть задачами. Файли лишаються на сторінці завдання, посилання на неї зберігається в тексті задачі.';
+
+  @override
+  String get settingsMoodleSaved => 'Посилання Moodle збережено';
+
+  @override
+  String get settingsMoodleLoad => 'Завантажити завдання';
+
+  @override
+  String get settingsMoodleEmpty => 'У цьому календарі немає термінів завдань.';
+
+  @override
+  String settingsMoodleResult(int added, int updated) {
+    return 'Додано $added, оновлено $updated';
+  }
+
+  @override
+  String get settingsMoodleErrorHttps => 'Посилання має починатися з https.';
+
+  @override
+  String get settingsMoodleErrorNetwork =>
+      'Не вдалося завантажити календар. Перевірте посилання і з\'єднання.';
+
+  @override
+  String get settingsMoodleErrorStatus =>
+      'Moodle не прийняв посилання. Створіть нове посилання календаря і спробуйте ще раз.';
+
+  @override
   String get settingsAiSection => 'Функції ШІ';
 
   @override
@@ -715,7 +753,17 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get cloudOutOfDate =>
-      'Поки не в хмарі. Зміни залишаться на цьому пристрої до наступної синхронізації.';
+      'Поки не в хмарі. Зміни поки лише на цьому пристрої.';
+
+  @override
+  String get cloudSendNow => 'Надіслати';
+
+  @override
+  String get settingsUploadToCloud => 'Надіслати в хмару';
+
+  @override
+  String get settingsUploadToCloudSubtitle =>
+      'Надсилає зміни, які поки є лише на цьому пристрої.';
 
   @override
   String get reminderWindowEnding =>

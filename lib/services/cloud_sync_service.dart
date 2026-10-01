@@ -13,6 +13,7 @@ import '../models/semester_period.dart';
 import '../models/task.dart';
 import 'firestore_service.dart';
 import 'hive_service.dart';
+import 'cloud_write_reporter.dart';
 import 'sync_clock.dart';
 
 class MergeResult<T> {
@@ -59,6 +60,82 @@ class CloudSyncService {
 
   void _noteSynced() {
     _lastPullAt = DateTime.now();
+  }
+
+  /// Sends the writes that failed earlier. Reads each record from Hive again,
+  /// so a newer local edit replaces the one that failed.
+  Future<void> retryPendingWrites(String uid) async {
+    final ops = List<PendingCloudWrite>.from(
+      CloudWriteReporter.instance.queued,
+    );
+    for (final op in ops) {
+      await CloudWriteReporter.instance.guard(
+        op,
+        () => _replayPending(uid, op),
+        scheduleRetry: false,
+      );
+    }
+  }
+
+  Future<void> _replayPending(String uid, PendingCloudWrite op) async {
+    switch (op.kind) {
+      case PendingCloudWrite.lesson:
+        if (op.delete) {
+          await _firestore.deleteLesson(uid, op.id);
+          return;
+        }
+        final lesson = HiveService.lessonsBox.get(op.id);
+        if (lesson != null) await _firestore.saveLesson(uid, lesson);
+        return;
+      case PendingCloudWrite.task:
+        if (op.delete) {
+          await _firestore.deleteTask(uid, op.id);
+          return;
+        }
+        final task = HiveService.tasksBox.get(op.id);
+        if (task != null) await _firestore.saveTask(uid, task);
+        return;
+      case PendingCloudWrite.exam:
+        if (op.delete) {
+          await _firestore.deleteExam(uid, op.id);
+          return;
+        }
+        final exam = HiveService.examsBox.get(op.id);
+        if (exam != null) await _firestore.saveExam(uid, exam);
+        return;
+      case PendingCloudWrite.period:
+        if (op.delete) {
+          await _firestore.deletePeriod(uid, op.id);
+          return;
+        }
+        final period = HiveService.periodsBox.get(op.id);
+        if (period != null) await _firestore.savePeriod(uid, period);
+        return;
+      case PendingCloudWrite.exception:
+        if (op.delete) {
+          await _firestore.deleteException(uid, op.id);
+          return;
+        }
+        final exception = HiveService.exceptionsBox.get(op.id);
+        if (exception != null) {
+          await _firestore.saveException(uid, exception);
+        }
+        return;
+      case PendingCloudWrite.profile:
+        if (op.delete) {
+          await _firestore.deleteProfile(uid, op.id);
+          return;
+        }
+        final profile = HiveService.profilesBox.get(op.id);
+        if (profile != null) await _firestore.saveProfile(uid, profile);
+        return;
+      case PendingCloudWrite.settings:
+        await _firestore.saveSettings(
+          uid,
+          HiveService.loadOrCreateSettings(),
+          geminiApiKey: await _storage.read(key: geminiApiKeyStorageKey),
+        );
+    }
   }
 
   /// Pulls when the account already has profiles. Pushes local Hive when

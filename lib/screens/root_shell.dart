@@ -299,21 +299,36 @@ class _CloudOutOfDateBanner extends StatelessWidget {
             (!auth.isSynced || CloudWriteReporter.instance.hasPendingFailure);
         if (!show) return const SizedBox.shrink();
         final colors = Theme.of(context).colorScheme;
+        final l10n = AppLocalizations.of(context);
         return Material(
           color: colors.errorContainer,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                Icon(Icons.cloud_off_outlined, color: colors.onErrorContainer),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    AppLocalizations.of(context).cloudOutOfDate,
-                    style: TextStyle(color: colors.onErrorContainer),
+          child: InkWell(
+            onTap: () => context.read<AuthProvider>().sendToCloud(),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.cloud_off_outlined,
+                    color: colors.onErrorContainer,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      l10n.cloudOutOfDate,
+                      style: TextStyle(color: colors.onErrorContainer),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    l10n.cloudSendNow,
+                    style: TextStyle(
+                      color: colors.onErrorContainer,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );

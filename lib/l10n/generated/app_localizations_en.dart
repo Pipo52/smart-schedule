@@ -360,6 +360,45 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageRussian => 'Русский';
 
   @override
+  String get settingsMoodleSection => 'Moodle';
+
+  @override
+  String get settingsMoodleUrl => 'Calendar link';
+
+  @override
+  String get settingsMoodleUrlHint => 'https://…/calendar/export_execute.php?…';
+
+  @override
+  String get settingsMoodleHelp =>
+      'In Moodle open Calendar → Export calendar and paste the link. Assignment names and due dates become tasks. The files stay on the assignment page; its link is saved in the task.';
+
+  @override
+  String get settingsMoodleSaved => 'Moodle link saved';
+
+  @override
+  String get settingsMoodleLoad => 'Load assignments';
+
+  @override
+  String get settingsMoodleEmpty =>
+      'No assignment deadlines were found in this calendar.';
+
+  @override
+  String settingsMoodleResult(int added, int updated) {
+    return 'Added $added, updated $updated';
+  }
+
+  @override
+  String get settingsMoodleErrorHttps => 'The link has to start with https.';
+
+  @override
+  String get settingsMoodleErrorNetwork =>
+      'Couldn\'t download the calendar. Check the link and your connection.';
+
+  @override
+  String get settingsMoodleErrorStatus =>
+      'Moodle refused the link. Create a new calendar link and try again.';
+
+  @override
   String get settingsAiSection => 'AI features';
 
   @override
@@ -712,7 +751,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cloudOutOfDate =>
-      'Not in the cloud yet. Changes stay on this device until the next sync.';
+      'Not in the cloud yet. These changes are still on this device.';
+
+  @override
+  String get cloudSendNow => 'Send now';
+
+  @override
+  String get settingsUploadToCloud => 'Send to the cloud';
+
+  @override
+  String get settingsUploadToCloudSubtitle =>
+      'Sends changes that are still only on this device.';
 
   @override
   String get reminderWindowEnding =>

@@ -23,6 +23,7 @@ import 'services/cloud_write_reporter.dart';
 import 'services/hive_service.dart';
 import 'services/notification_service.dart';
 import 'services/schedule_widget_service.dart';
+import 'theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -167,27 +168,8 @@ class _AppView extends StatefulWidget {
 class _AppViewState extends State<_AppView> with WidgetsBindingObserver {
   int _appliedSyncEpoch = 0;
 
-  // ColorScheme.fromSeed() performs expensive HCT palette generation.
-  // Caching as static fields means it runs exactly once per app launch
-  // instead of on every SettingsProvider.notifyListeners() rebuild.
-  static final ThemeData _lightTheme = ThemeData(
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: Colors.indigo,
-      brightness: Brightness.light,
-    ),
-    textTheme: ThemeData.light().textTheme,
-    scaffoldBackgroundColor: const Color(0xFFF8F9FD),
-    useMaterial3: true,
-  );
-  static final ThemeData _darkTheme = ThemeData(
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: Colors.indigo,
-      brightness: Brightness.dark,
-    ),
-    textTheme: ThemeData.dark().textTheme,
-    scaffoldBackgroundColor: const Color(0xFF121212),
-    useMaterial3: true,
-  );
+  static final ThemeData _lightTheme = AppTheme.light;
+  static final ThemeData _darkTheme = AppTheme.dark;
 
   @override
   void initState() {

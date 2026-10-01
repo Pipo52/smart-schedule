@@ -59,11 +59,10 @@ class ExamProvider extends ChangeNotifier {
     await NotificationService.instance.scheduleExamNotifications(exam);
     final uid = _effectiveUid;
     if (uid != null) {
-      try {
-        await FirestoreService.instance.saveExam(uid, exam);
-      } catch (e) {
-        CloudWriteReporter.instance.report(e);
-      }
+      await CloudWriteReporter.instance.guard(
+        PendingCloudWrite(PendingCloudWrite.exam, exam.id),
+        () => FirestoreService.instance.saveExam(uid, exam),
+      );
     }
   }
 
@@ -74,11 +73,10 @@ class ExamProvider extends ChangeNotifier {
     notifyListeners();
     final uid = _effectiveUid;
     if (uid != null) {
-      try {
-        await FirestoreService.instance.deleteExam(uid, id);
-      } catch (e) {
-        CloudWriteReporter.instance.report(e);
-      }
+      await CloudWriteReporter.instance.guard(
+        PendingCloudWrite(PendingCloudWrite.exam, id, delete: true),
+        () => FirestoreService.instance.deleteExam(uid, id),
+      );
     }
   }
 
@@ -92,11 +90,10 @@ class ExamProvider extends ChangeNotifier {
     notifyListeners();
     final uid = _effectiveUid;
     if (uid != null) {
-      try {
-        await FirestoreService.instance.saveExam(uid, exam);
-      } catch (e) {
-        CloudWriteReporter.instance.report(e);
-      }
+      await CloudWriteReporter.instance.guard(
+        PendingCloudWrite(PendingCloudWrite.exam, exam.id),
+        () => FirestoreService.instance.saveExam(uid, exam),
+      );
     }
   }
 
@@ -112,11 +109,10 @@ class ExamProvider extends ChangeNotifier {
     notifyListeners();
     final uid = _effectiveUid;
     if (uid != null) {
-      try {
-        await FirestoreService.instance.saveExam(uid, exam);
-      } catch (e) {
-        CloudWriteReporter.instance.report(e);
-      }
+      await CloudWriteReporter.instance.guard(
+        PendingCloudWrite(PendingCloudWrite.exam, exam.id),
+        () => FirestoreService.instance.saveExam(uid, exam),
+      );
     }
   }
 

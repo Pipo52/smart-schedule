@@ -362,6 +362,44 @@ class AppLocalizationsRu extends AppLocalizations {
   String get languageRussian => 'Русский';
 
   @override
+  String get settingsMoodleSection => 'Moodle';
+
+  @override
+  String get settingsMoodleUrl => 'Ссылка на календарь';
+
+  @override
+  String get settingsMoodleUrlHint => 'https://…/calendar/export_execute.php?…';
+
+  @override
+  String get settingsMoodleHelp =>
+      'В Moodle откройте Календарь → Экспорт календаря и вставьте ссылку. Названия заданий и сроки станут задачами. Файлы остаются на странице задания, ссылка на неё сохраняется в тексте задачи.';
+
+  @override
+  String get settingsMoodleSaved => 'Ссылка Moodle сохранена';
+
+  @override
+  String get settingsMoodleLoad => 'Загрузить задания';
+
+  @override
+  String get settingsMoodleEmpty => 'В этом календаре нет сроков заданий.';
+
+  @override
+  String settingsMoodleResult(int added, int updated) {
+    return 'Добавлено $added, обновлено $updated';
+  }
+
+  @override
+  String get settingsMoodleErrorHttps => 'Ссылка должна начинаться с https.';
+
+  @override
+  String get settingsMoodleErrorNetwork =>
+      'Не удалось скачать календарь. Проверьте ссылку и соединение.';
+
+  @override
+  String get settingsMoodleErrorStatus =>
+      'Moodle не принял ссылку. Создайте новую ссылку календаря и попробуйте ещё раз.';
+
+  @override
   String get settingsAiSection => 'Функции ИИ';
 
   @override
@@ -716,7 +754,17 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get cloudOutOfDate =>
-      'Пока не в облаке. Правки останутся на этом устройстве до следующей синхронизации.';
+      'Пока не в облаке. Правки пока только на этом устройстве.';
+
+  @override
+  String get cloudSendNow => 'Отправить';
+
+  @override
+  String get settingsUploadToCloud => 'Отправить в облако';
+
+  @override
+  String get settingsUploadToCloudSubtitle =>
+      'Отправляет правки, которые пока есть только на этом устройстве.';
 
   @override
   String get reminderWindowEnding =>

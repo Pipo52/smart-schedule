@@ -16,6 +16,7 @@ import '../../providers/schedule_provider.dart';
 import '../../providers/settings_provider.dart';
 import '../../providers/task_provider.dart';
 import '../../services/ai_parser_service.dart';
+import '../../theme/app_theme.dart';
 import '../../utils/smart_import_utils.dart';
 import '../../utils/weekday_utils.dart';
 import '../../widgets/break_indicator.dart';
@@ -452,9 +453,9 @@ class _LessonOccurrenceTile extends StatelessWidget {
   final int? remainingMinutes;
   final double? progress;
 
-  static const Color _lectureColor = Color(0xFF3B82F6);
-  static const Color _practicalColor = Color(0xFF22A06B);
-  static const Color _labColor = Color(0xFFF97316);
+  static const Color _lectureColor = LessonColors.lecture;
+  static const Color _practicalColor = LessonColors.practical;
+  static const Color _labColor = LessonColors.laboratory;
 
   @override
   Widget build(BuildContext context) {

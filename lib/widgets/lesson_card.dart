@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/lesson.dart';
+import '../theme/app_theme.dart';
 import '../utils/enum_labels.dart';
 
 class LessonCard extends StatelessWidget {
@@ -28,9 +29,9 @@ class LessonCard extends StatelessWidget {
     final theme = Theme.of(context);
     final fade = faded ? 0.45 : 1.0;
     final typeColor = (switch (lesson.type) {
-      LessonType.lecture => const Color(0xFF3B82F6),
-      LessonType.practical => const Color(0xFF22A06B),
-      LessonType.laboratory => const Color(0xFFF97316),
+      LessonType.lecture => LessonColors.lecture,
+      LessonType.practical => LessonColors.practical,
+      LessonType.laboratory => LessonColors.laboratory,
     }).withValues(alpha: fade);
     final onSurface = theme.colorScheme.onSurface.withValues(alpha: fade);
     final onVariant = theme.colorScheme.onSurfaceVariant.withValues(

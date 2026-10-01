@@ -89,11 +89,10 @@ class SemesterPeriodProvider extends ChangeNotifier {
     notifyListeners();
     final uid = _effectiveUid;
     if (uid != null) {
-      try {
-        await FirestoreService.instance.savePeriod(uid, period);
-      } catch (e) {
-        CloudWriteReporter.instance.report(e);
-      }
+      await CloudWriteReporter.instance.guard(
+        PendingCloudWrite(PendingCloudWrite.period, period.id),
+        () => FirestoreService.instance.savePeriod(uid, period),
+      );
     }
   }
 
@@ -103,11 +102,10 @@ class SemesterPeriodProvider extends ChangeNotifier {
     notifyListeners();
     final uid = _effectiveUid;
     if (uid != null) {
-      try {
-        await FirestoreService.instance.deletePeriod(uid, id);
-      } catch (e) {
-        CloudWriteReporter.instance.report(e);
-      }
+      await CloudWriteReporter.instance.guard(
+        PendingCloudWrite(PendingCloudWrite.period, id, delete: true),
+        () => FirestoreService.instance.deletePeriod(uid, id),
+      );
     }
   }
 

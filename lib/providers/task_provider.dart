@@ -9,6 +9,7 @@ import '../services/cloud_write_reporter.dart';
 import '../services/firestore_service.dart';
 import '../services/hive_service.dart';
 import '../services/sync_clock.dart';
+import '../services/moodle_calendar.dart';
 import '../services/notification_service.dart';
 
 class TaskProvider extends ChangeNotifier {
@@ -94,12 +95,52 @@ class TaskProvider extends ChangeNotifier {
     }
     final uid = _effectiveUid;
     if (uid != null) {
-      try {
-        await FirestoreService.instance.saveTask(uid, task);
-      } catch (e) {
-        CloudWriteReporter.instance.report(e);
-      }
+      await CloudWriteReporter.instance.guard(
+        PendingCloudWrite(PendingCloudWrite.task, task.id),
+        () => FirestoreService.instance.saveTask(uid, task),
+      );
     }
+  }
+
+  Future<({int added, int updated})> importMoodleAssignments(
+    List<MoodleAssignment> items,
+  ) async {
+    var added = 0;
+    var updated = 0;
+    for (final item in items) {
+      final id = moodleTaskId(item.uid);
+      final due = item.due.toLocal();
+      final description = item.description;
+      final existing = _box.get(id);
+      if (existing == null) {
+        added++;
+        await saveTask(
+          Task(
+            id: id,
+            title: item.title,
+            description: description.isEmpty ? null : description,
+            dueDate: due,
+            priority: Priority.medium,
+            profileId: _profileId,
+            reminderOffsetMinutes: 1440,
+          ),
+        );
+        continue;
+      }
+      final unchanged =
+          existing.title == item.title &&
+          existing.dueDate == due &&
+          (existing.description ?? '') == description &&
+          existing.profileId == _profileId;
+      if (unchanged) continue;
+      updated++;
+      existing.title = item.title;
+      existing.description = description.isEmpty ? null : description;
+      existing.dueDate = due;
+      existing.profileId = _profileId;
+      await saveTask(existing);
+    }
+    return (added: added, updated: updated);
   }
 
   Future<void> deleteTask(String id) async {
@@ -109,11 +150,10 @@ class TaskProvider extends ChangeNotifier {
     notifyListeners();
     final uid = _effectiveUid;
     if (uid != null) {
-      try {
-        await FirestoreService.instance.deleteTask(uid, id);
-      } catch (e) {
-        CloudWriteReporter.instance.report(e);
-      }
+      await CloudWriteReporter.instance.guard(
+        PendingCloudWrite(PendingCloudWrite.task, id, delete: true),
+        () => FirestoreService.instance.deleteTask(uid, id),
+      );
     }
   }
 
@@ -130,11 +170,10 @@ class TaskProvider extends ChangeNotifier {
     notifyListeners();
     final uid = _effectiveUid;
     if (uid != null) {
-      try {
-        await FirestoreService.instance.saveTask(uid, task);
-      } catch (e) {
-        CloudWriteReporter.instance.report(e);
-      }
+      await CloudWriteReporter.instance.guard(
+        PendingCloudWrite(PendingCloudWrite.task, task.id),
+        () => FirestoreService.instance.saveTask(uid, task),
+      );
     }
   }
 

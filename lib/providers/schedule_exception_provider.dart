@@ -94,11 +94,10 @@ class ScheduleExceptionProvider extends ChangeNotifier {
     notifyListeners();
     final uid = _effectiveUid;
     if (uid != null) {
-      try {
-        await FirestoreService.instance.saveException(uid, exception);
-      } catch (e) {
-        CloudWriteReporter.instance.report(e);
-      }
+      await CloudWriteReporter.instance.guard(
+        PendingCloudWrite(PendingCloudWrite.exception, exception.id),
+        () => FirestoreService.instance.saveException(uid, exception),
+      );
     }
   }
 
@@ -108,11 +107,10 @@ class ScheduleExceptionProvider extends ChangeNotifier {
     notifyListeners();
     final uid = _effectiveUid;
     if (uid != null) {
-      try {
-        await FirestoreService.instance.deleteException(uid, id);
-      } catch (e) {
-        CloudWriteReporter.instance.report(e);
-      }
+      await CloudWriteReporter.instance.guard(
+        PendingCloudWrite(PendingCloudWrite.exception, id, delete: true),
+        () => FirestoreService.instance.deleteException(uid, id),
+      );
     }
   }
 
@@ -127,11 +125,14 @@ class ScheduleExceptionProvider extends ChangeNotifier {
     final uid = _effectiveUid;
     if (uid != null) {
       for (final exception in toDelete) {
-        try {
-          await FirestoreService.instance.deleteException(uid, exception.id);
-        } catch (e) {
-          CloudWriteReporter.instance.report(e);
-        }
+        await CloudWriteReporter.instance.guard(
+          PendingCloudWrite(
+            PendingCloudWrite.exception,
+            exception.id,
+            delete: true,
+          ),
+          () => FirestoreService.instance.deleteException(uid, exception.id),
+        );
       }
     }
   }

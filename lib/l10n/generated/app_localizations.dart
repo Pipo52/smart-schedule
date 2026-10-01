@@ -748,6 +748,72 @@ abstract class AppLocalizations {
   /// **'Русский'**
   String get languageRussian;
 
+  /// No description provided for @settingsMoodleSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Moodle'**
+  String get settingsMoodleSection;
+
+  /// No description provided for @settingsMoodleUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar link'**
+  String get settingsMoodleUrl;
+
+  /// No description provided for @settingsMoodleUrlHint.
+  ///
+  /// In en, this message translates to:
+  /// **'https://…/calendar/export_execute.php?…'**
+  String get settingsMoodleUrlHint;
+
+  /// No description provided for @settingsMoodleHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'In Moodle open Calendar → Export calendar and paste the link. Assignment names and due dates become tasks. The files stay on the assignment page; its link is saved in the task.'**
+  String get settingsMoodleHelp;
+
+  /// No description provided for @settingsMoodleSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Moodle link saved'**
+  String get settingsMoodleSaved;
+
+  /// No description provided for @settingsMoodleLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Load assignments'**
+  String get settingsMoodleLoad;
+
+  /// No description provided for @settingsMoodleEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No assignment deadlines were found in this calendar.'**
+  String get settingsMoodleEmpty;
+
+  /// No description provided for @settingsMoodleResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Added {added}, updated {updated}'**
+  String settingsMoodleResult(int added, int updated);
+
+  /// No description provided for @settingsMoodleErrorHttps.
+  ///
+  /// In en, this message translates to:
+  /// **'The link has to start with https.'**
+  String get settingsMoodleErrorHttps;
+
+  /// No description provided for @settingsMoodleErrorNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t download the calendar. Check the link and your connection.'**
+  String get settingsMoodleErrorNetwork;
+
+  /// No description provided for @settingsMoodleErrorStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Moodle refused the link. Create a new calendar link and try again.'**
+  String get settingsMoodleErrorStatus;
+
   /// No description provided for @settingsAiSection.
   ///
   /// In en, this message translates to:
@@ -1369,8 +1435,26 @@ abstract class AppLocalizations {
   /// No description provided for @cloudOutOfDate.
   ///
   /// In en, this message translates to:
-  /// **'Not in the cloud yet. Changes stay on this device until the next sync.'**
+  /// **'Not in the cloud yet. These changes are still on this device.'**
   String get cloudOutOfDate;
+
+  /// No description provided for @cloudSendNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Send now'**
+  String get cloudSendNow;
+
+  /// No description provided for @settingsUploadToCloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to the cloud'**
+  String get settingsUploadToCloud;
+
+  /// No description provided for @settingsUploadToCloudSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sends changes that are still only on this device.'**
+  String get settingsUploadToCloudSubtitle;
 
   /// No description provided for @reminderWindowEnding.
   ///

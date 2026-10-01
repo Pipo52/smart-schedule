@@ -114,11 +114,10 @@ class ProfileProvider extends ChangeNotifier {
     notifyListeners();
     final uid = _effectiveUid;
     if (uid != null) {
-      try {
-        await FirestoreService.instance.saveProfile(uid, profile);
-      } catch (e) {
-        CloudWriteReporter.instance.report(e);
-      }
+      await CloudWriteReporter.instance.guard(
+        PendingCloudWrite(PendingCloudWrite.profile, profile.id),
+        () => FirestoreService.instance.saveProfile(uid, profile),
+      );
     }
     return profile;
   }
@@ -144,11 +143,10 @@ class ProfileProvider extends ChangeNotifier {
     notifyListeners();
     final uid = _effectiveUid;
     if (uid != null) {
-      try {
-        await FirestoreService.instance.saveProfile(uid, profile);
-      } catch (e) {
-        CloudWriteReporter.instance.report(e);
-      }
+      await CloudWriteReporter.instance.guard(
+        PendingCloudWrite(PendingCloudWrite.profile, profile.id),
+        () => FirestoreService.instance.saveProfile(uid, profile),
+      );
     }
   }
 
@@ -217,28 +215,49 @@ class ProfileProvider extends ChangeNotifier {
     notifyListeners();
     final uid = _effectiveUid;
     if (uid != null) {
-      try {
-        await FirestoreService.instance.deleteProfile(uid, id);
-        for (final lesson in lessons) {
-          await FirestoreService.instance.deleteLesson(uid, lesson.id);
-        }
-        for (final task in tasks) {
-          await FirestoreService.instance.deleteTask(uid, task.id);
-        }
-        for (final exam in exams) {
-          await FirestoreService.instance.deleteExam(uid, exam.id);
-        }
-        for (final exception in exceptions) {
-          await FirestoreService.instance.deleteException(uid, exception.id);
-        }
-        for (final period in periods) {
-          await FirestoreService.instance.deletePeriod(uid, period.id);
-        }
-        if (profile.isDefault) {
-          await FirestoreService.instance.saveProfile(uid, replacement);
-        }
-      } catch (e) {
-        CloudWriteReporter.instance.report(e);
+      await CloudWriteReporter.instance.guard(
+        PendingCloudWrite(PendingCloudWrite.profile, id, delete: true),
+        () => FirestoreService.instance.deleteProfile(uid, id),
+      );
+      for (final lesson in lessons) {
+        await CloudWriteReporter.instance.guard(
+          PendingCloudWrite(PendingCloudWrite.lesson, lesson.id, delete: true),
+          () => FirestoreService.instance.deleteLesson(uid, lesson.id),
+        );
+      }
+      for (final task in tasks) {
+        await CloudWriteReporter.instance.guard(
+          PendingCloudWrite(PendingCloudWrite.task, task.id, delete: true),
+          () => FirestoreService.instance.deleteTask(uid, task.id),
+        );
+      }
+      for (final exam in exams) {
+        await CloudWriteReporter.instance.guard(
+          PendingCloudWrite(PendingCloudWrite.exam, exam.id, delete: true),
+          () => FirestoreService.instance.deleteExam(uid, exam.id),
+        );
+      }
+      for (final exception in exceptions) {
+        await CloudWriteReporter.instance.guard(
+          PendingCloudWrite(
+            PendingCloudWrite.exception,
+            exception.id,
+            delete: true,
+          ),
+          () => FirestoreService.instance.deleteException(uid, exception.id),
+        );
+      }
+      for (final period in periods) {
+        await CloudWriteReporter.instance.guard(
+          PendingCloudWrite(PendingCloudWrite.period, period.id, delete: true),
+          () => FirestoreService.instance.deletePeriod(uid, period.id),
+        );
+      }
+      if (profile.isDefault) {
+        await CloudWriteReporter.instance.guard(
+          PendingCloudWrite(PendingCloudWrite.profile, replacement.id),
+          () => FirestoreService.instance.saveProfile(uid, replacement),
+        );
       }
     }
   }
@@ -260,11 +279,10 @@ class ProfileProvider extends ChangeNotifier {
     final uid = _effectiveUid;
     if (uid != null) {
       for (final profile in _box.values) {
-        try {
-          await FirestoreService.instance.saveProfile(uid, profile);
-        } catch (e) {
-          CloudWriteReporter.instance.report(e);
-        }
+        await CloudWriteReporter.instance.guard(
+          PendingCloudWrite(PendingCloudWrite.profile, profile.id),
+          () => FirestoreService.instance.saveProfile(uid, profile),
+        );
       }
     }
   }

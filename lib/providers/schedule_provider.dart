@@ -123,11 +123,10 @@ class ScheduleProvider extends ChangeNotifier {
     await _scheduleFor(lesson);
     final uid = _effectiveUid;
     if (uid != null) {
-      try {
-        await FirestoreService.instance.saveLesson(uid, lesson);
-      } catch (e) {
-        CloudWriteReporter.instance.report(e);
-      }
+      await CloudWriteReporter.instance.guard(
+        PendingCloudWrite(PendingCloudWrite.lesson, lesson.id),
+        () => FirestoreService.instance.saveLesson(uid, lesson),
+      );
     }
   }
 
@@ -161,11 +160,10 @@ class ScheduleProvider extends ChangeNotifier {
     final uid = _effectiveUid;
     if (uid != null) {
       for (final lesson in lessons) {
-        try {
-          await FirestoreService.instance.saveLesson(uid, lesson);
-        } catch (e) {
-          CloudWriteReporter.instance.report(e);
-        }
+        await CloudWriteReporter.instance.guard(
+          PendingCloudWrite(PendingCloudWrite.lesson, lesson.id),
+          () => FirestoreService.instance.saveLesson(uid, lesson),
+        );
       }
     }
   }
@@ -182,17 +180,19 @@ class ScheduleProvider extends ChangeNotifier {
     notifyListeners();
     final uid = _effectiveUid;
     if (uid != null) {
-      try {
-        await FirestoreService.instance.deleteLesson(uid, id);
-      } catch (e) {
-        CloudWriteReporter.instance.report(e);
-      }
+      await CloudWriteReporter.instance.guard(
+        PendingCloudWrite(PendingCloudWrite.lesson, id, delete: true),
+        () => FirestoreService.instance.deleteLesson(uid, id),
+      );
       for (final exceptionId in exceptionIds) {
-        try {
-          await FirestoreService.instance.deleteException(uid, exceptionId);
-        } catch (e) {
-          CloudWriteReporter.instance.report(e);
-        }
+        await CloudWriteReporter.instance.guard(
+          PendingCloudWrite(
+            PendingCloudWrite.exception,
+            exceptionId,
+            delete: true,
+          ),
+          () => FirestoreService.instance.deleteException(uid, exceptionId),
+        );
       }
     }
   }

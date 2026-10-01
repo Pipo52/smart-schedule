@@ -25,6 +25,7 @@ class WeekSwitcher extends StatelessWidget {
         ButtonSegment(value: 2, label: Text(l10n.week2Short)),
       ],
       selected: {selectedWeek},
+      showSelectedIcon: false,
       onSelectionChanged: (set) => onChanged(set.first),
     );
   }

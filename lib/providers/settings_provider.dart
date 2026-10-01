@@ -14,18 +14,21 @@ import '../services/week_calculator.dart';
 /// Week 1 / Week 2 rotation, [Locale] and [ThemeMode] from it.
 class SettingsProvider extends ChangeNotifier {
   SettingsProvider() : _settings = HiveService.loadOrCreateSettings() {
-    _loadGeminiApiKey();
+    _loadSecrets();
   }
 
   static const _geminiApiKeyStorageKey =
       CloudSyncService.geminiApiKeyStorageKey;
+  static const moodleCalendarUrlKey = 'moodle_calendar_url';
   final _storage = const FlutterSecureStorage();
   AppSettings _settings;
   String? _geminiApiKey;
+  String? _moodleCalendarUrl;
   String? _uid;
 
   AppSettings get settings => _settings;
   String? get geminiApiKey => _geminiApiKey;
+  String? get moodleCalendarUrl => _moodleCalendarUrl;
   StartupBehavior get startupBehavior => _settings.startupBehavior;
 
   int get currentWeek => WeekCalculator.currentWeek(
@@ -64,15 +67,14 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> pushToCloud() async {
     final uid = _effectiveUid;
     if (uid == null) return;
-    try {
-      await FirestoreService.instance.saveSettings(
+    await CloudWriteReporter.instance.guard(
+      PendingCloudWrite(PendingCloudWrite.settings, 'app'),
+      () => FirestoreService.instance.saveSettings(
         uid,
         _settings,
         geminiApiKey: _geminiApiKey,
-      );
-    } catch (e) {
-      CloudWriteReporter.instance.report(e);
-    }
+      ),
+    );
   }
 
   Future<void> setManualWeekOverride(int? week) async {
@@ -122,6 +124,21 @@ class SettingsProvider extends ChangeNotifier {
     await pushToCloud();
   }
 
+  /// The calendar link contains a secret token, so it stays on this device.
+  Future<void> setMoodleCalendarUrl(String? url) async {
+    final trimmed = url?.trim();
+    _moodleCalendarUrl = (trimmed == null || trimmed.isEmpty) ? null : trimmed;
+    notifyListeners();
+    if (_moodleCalendarUrl == null) {
+      await _storage.delete(key: moodleCalendarUrlKey);
+    } else {
+      await _storage.write(
+        key: moodleCalendarUrlKey,
+        value: _moodleCalendarUrl,
+      );
+    }
+  }
+
   /// Wipes all data and resets settings to defaults.
   Future<void> resetAllData() async {
     final uid = _effectiveUid;
@@ -133,6 +150,7 @@ class SettingsProvider extends ChangeNotifier {
     await HiveService.ensureDefaultProfile();
     _settings = HiveService.loadOrCreateSettings();
     _geminiApiKey = null;
+    _moodleCalendarUrl = null;
     if (uid != null) {
       await CloudSyncService.instance.rememberOwner(uid);
       await CloudSyncService.instance.recordWipeTimestamp(uid);
@@ -145,16 +163,23 @@ class SettingsProvider extends ChangeNotifier {
   void reloadFromBox() {
     _settings = HiveService.loadOrCreateSettings();
     notifyListeners();
-    _loadGeminiApiKey();
+    _loadSecrets();
   }
 
-  void _loadGeminiApiKey() {
+  void _loadSecrets() {
     _storage
         .read(key: _geminiApiKeyStorageKey)
         .then((value) {
           _geminiApiKey = value;
           notifyListeners();
         })
-        .catchError((e) {});
+        .catchError((_) {});
+    _storage
+        .read(key: moodleCalendarUrlKey)
+        .then((value) {
+          _moodleCalendarUrl = value;
+          notifyListeners();
+        })
+        .catchError((_) {});
   }
 }

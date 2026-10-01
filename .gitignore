@@ -46,3 +46,9 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Local tooling and generated build output
+.cursor/
+.firebase/
+.vscode/
+/android/build/

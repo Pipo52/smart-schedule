@@ -121,6 +121,24 @@
   "languageUkrainian": "Українська",
   "languageRussian": "Русский",
 
+  "settingsMoodleSection": "Moodle",
+  "settingsMoodleUrl": "Посилання на календар",
+  "settingsMoodleUrlHint": "https://…/calendar/export_execute.php?…",
+  "settingsMoodleHelp": "У Moodle відкрийте Календар → Експорт календаря і вставте посилання. Назви завдань і терміни стануть задачами. Файли лишаються на сторінці завдання, посилання на неї зберігається в тексті задачі.",
+  "settingsMoodleSaved": "Посилання Moodle збережено",
+  "settingsMoodleLoad": "Завантажити завдання",
+  "settingsMoodleEmpty": "У цьому календарі немає термінів завдань.",
+  "settingsMoodleResult": "Додано {added}, оновлено {updated}",
+  "@settingsMoodleResult": {
+    "placeholders": {
+      "added": {"type": "int"},
+      "updated": {"type": "int"}
+    }
+  },
+  "settingsMoodleErrorHttps": "Посилання має починатися з https.",
+  "settingsMoodleErrorNetwork": "Не вдалося завантажити календар. Перевірте посилання і з'єднання.",
+  "settingsMoodleErrorStatus": "Moodle не прийняв посилання. Створіть нове посилання календаря і спробуйте ще раз.",
+
   "settingsAiSection": "Функції ШІ",
   "settingsGeminiApiKey": "Ключ Gemini API",
   "settingsGeminiApiKeyHint": "Вставте ваш API-ключ",
@@ -229,7 +247,10 @@
   "lessonTimeRemainingHours": "До кінця: {hours} год {minutes} хв",
   "lessonTimeRemainingHoursOnly": "До кінця: {hours} год",
   "cloudSaveFailed": "Не збереглося в хмару, спробуйте ще раз",
-  "cloudOutOfDate": "Поки не в хмарі. Зміни залишаться на цьому пристрої до наступної синхронізації.",
+  "cloudOutOfDate": "Поки не в хмарі. Зміни поки лише на цьому пристрої.",
+  "cloudSendNow": "Надіслати",
+  "settingsUploadToCloud": "Надіслати в хмару",
+  "settingsUploadToCloudSubtitle": "Надсилає зміни, які поки є лише на цьому пристрої.",
   "reminderWindowEnding": "Нагадування про пари скоро закінчаться. Відкрийте застосунок, щоб оновити їх.",
   "settingsBatteryTitle": "Дозволити нагадування у фоні",
   "settingsBatterySubtitle": "Економія батареї може зупинити будильник пари. Вимкніть оптимізацію для Smart Schedule.",

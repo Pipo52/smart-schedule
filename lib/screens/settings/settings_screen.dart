@@ -15,6 +15,7 @@ import '../../services/backup_service.dart';
 import '../../services/battery_optimization.dart';
 import '../../services/notification_service.dart';
 import 'gemini_api_key_tile.dart';
+import 'moodle_calendar_tile.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -140,6 +141,15 @@ class SettingsScreen extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.account_circle_outlined),
               title: Text(l10n.settingsSignedInAs(userEmail)),
+            ),
+          if (auth.currentUser != null)
+            ListTile(
+              leading: const Icon(Icons.cloud_upload_outlined),
+              title: Text(l10n.settingsUploadToCloud),
+              subtitle: Text(l10n.settingsUploadToCloudSubtitle),
+              enabled: !auth.isSyncing,
+              onTap: () =>
+                  context.read<AuthProvider>().sendToCloud(force: true),
             ),
           ListTile(
             leading: Icon(
@@ -307,6 +317,9 @@ class SettingsScreen extends StatelessWidget {
               onChanged: (code) => settings.setAppLocale(code),
             ),
           ),
+          const Divider(),
+          _SectionLabel(l10n.settingsMoodleSection),
+          const MoodleCalendarTile(),
           const Divider(),
           _SectionLabel(l10n.settingsAiSection),
           const GeminiApiKeyTile(),
