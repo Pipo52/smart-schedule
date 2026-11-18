@@ -46,10 +46,6 @@ flutter test
 
 There are **59 tests** in `test/` (48 unit tests and 11 widget tests). There is also one integration test, `integration_test/scroll_perf_test.dart`, which measures scroll performance on the home screen.
 
-## How this was built
-
-Most of the code was written with AI tools (Cursor, Claude, Gemini/Antigravity) under my direction. I planned the features, wrote the specs, reviewed every change and tested the result.
-
 ---
 
 Rostyslav Perlyk, 2nd-year IT student at VILNIUS TECH.
